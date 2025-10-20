@@ -1,0 +1,116 @@
+.topbar {
+  background-color: #333333;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px;
+  font-size: 14px;
+  border-bottom: 1px solid #e9ecef;
+  height: 50px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+  box-sizing: border-box;
+}
+
+.connexion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 5%;
+}
+
+.connexion a {
+  text-decoration: none;
+  color: white;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.connexion a:hover {
+  color: orangered;
+}
+
+.connexion p {
+  margin: 0;
+  color: white;
+}
+
+.contacts {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.contacts a {
+  text-decoration: none;
+  color: white;
+  font-size: 14px;
+  transition: color 0.2s ease;
+}
+
+.contacts a:hover {
+  color: orangered;
+}
+
+.notif-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  margin-right: 5%;
+}
+
+.notif-card i {
+  color: white;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  position: relative;
+  font-size: 16px;
+}
+
+.notif-card i:hover {
+  color: orangered;
+}
+
+.notif-card p{
+      margin: 0;
+}
+
+.badge {
+  font-size: 10px;
+  padding: 2px 5px;
+  min-width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 8px 15px;
+    font-size: 12px;
+  }
+
+  .contacts {
+    gap: 10px;
+  }
+
+  .contacts a {
+    font-size: 12px;
+  }
+
+  .notif-card {
+    gap: 15px;
+  }
+
+
+  .notif-card i {
+    font-size: 14px;
+  }
+}

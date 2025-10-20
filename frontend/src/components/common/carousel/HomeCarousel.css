@@ -1,0 +1,228 @@
+.carousel {
+  position: relative;
+  width: 100%;
+}
+
+.carousel-inner {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+
+.carousel-item {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 90vh;
+  background-color: #000;
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.carousel-item.active {
+  position: relative;
+  opacity: 1;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.8;
+}
+
+.carousel-caption {
+  position: absolute;
+  left: 10%;
+  top: 50%;
+  transform: translateY(-50%);
+  text-align: left;
+  color: white;
+  z-index: 10;
+  max-width: 500px;
+}
+
+.carousel-caption h5 {
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+.carousel-caption h1 {
+  font-size: 48px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.carousel-caption h2 {
+  font-size: 18px;
+  font-weight: 300;
+  margin-bottom: 30px;
+  opacity: 0.8;
+}
+
+.shop-now-btn {
+  background-color: #ff6b00;
+  color: white;
+  border: none;
+  padding: 12px 35px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-radius: 25px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+
+.shop-now-btn:hover {
+  background-color: #e55a00;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+}
+
+.carousel-indicators {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 15;
+}
+
+.carousel-indicators li {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.carousel-indicators li.active {
+  background-color: white;
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 50px;
+  height: 50px;
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: all 0.3s ease;
+  z-index: 15;
+  border: none;
+  cursor: pointer;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+  opacity: 1;
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.carousel-control-prev {
+  left: 20px;
+}
+
+.carousel-control-next {
+  right: 20px;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  width: 20px;
+  height: 20px;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.carousel-control-prev-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E");
+}
+
+.carousel-control-next-icon {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E");
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+@media (max-width: 768px) {
+  .carousel-item {
+    height: 70vh;
+  }
+
+  .carousel-caption {
+    left: 5%;
+    right: 5%;
+    text-align: center;
+  }
+
+  .carousel-caption h1 {
+    font-size: 32px;
+  }
+
+  .carousel-caption h2 {
+    font-size: 16px;
+  }
+
+  .shop-now-btn {
+    padding: 10px 25px;
+    font-size: 12px;
+  }
+
+  .carousel-control-prev,
+  .carousel-control-next {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carousel-item {
+    height: 60vh;
+  }
+
+  .carousel-caption h1 {
+    font-size: 24px;
+  }
+
+  .carousel-caption h5 {
+    font-size: 12px;
+  }
+}

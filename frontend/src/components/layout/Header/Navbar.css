@@ -1,0 +1,161 @@
+.navbar {
+  background-color: white;
+  border-bottom: 1px solid #e9ecef;
+  padding: 0 20px;
+  position: sticky;
+  top: 50px;
+  z-index: 999;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+}
+
+.nav-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  height: 70px;
+}
+
+.nav-logo {
+  font-size: 24px;
+  font-weight: bold;
+  color: #333;
+  letter-spacing: 1px;
+  margin-left: 5%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.nav-logo span {
+    background: linear-gradient(45deg, #333, #666);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+    white-space: nowrap;
+}
+
+.nav-menu {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+     margin-left: 17%;
+}
+
+.nav-link {
+  text-decoration: none;
+  color: #333;
+  font-weight: 500;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color 0.3s ease;
+  position: relative;
+
+}
+
+.nav-link:hover {
+  color: orangered;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background-color: orangered;
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+.nav-search {
+  display: flex;
+  margin-left: 25%;
+}
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  padding: 8px 40px 8px 15px;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  font-size: 14px;
+  width: 250px;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  border-color: orangered;
+  box-shadow: 0 0 0 2px rgba(255, 69, 0, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 15px;
+  color: #666;
+  cursor: pointer;
+  transition: color 0.3s ease;
+}
+
+.search-input:focus + .search-icon {
+  color: orangered;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .nav-menu {
+    gap: 20px;
+  }
+
+  .search-input {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 0 15px;
+  }
+
+  .nav-container {
+    flex-direction: column;
+    height: auto;
+    padding: 15px 0;
+  }
+
+  .nav-logo {
+    margin-bottom: 15px;
+  }
+
+  .nav-menu {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+
+  .nav-link {
+    font-size: 12px;
+  }
+
+  .search-input {
+    width: 100%;
+    max-width: 300px;
+  }
+}
+
+.logo-img {
+  height: 55px;
+  width: auto;
+}

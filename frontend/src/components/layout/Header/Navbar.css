@@ -3,8 +3,11 @@
   border-bottom: 1px solid #e9ecef;
   padding: 0 20px;
   position: sticky;
-  top: 50px;
-  z-index: 999;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 
 }

@@ -1,0 +1,223 @@
+.footer-container {
+  font-family: 'Arial', sans-serif;
+  color: #ffffff;
+  background-color: #333333;
+  padding-top: 0;
+}
+
+.subscription-section {
+  background-color: #333333;
+  padding-bottom: 40px;
+}
+
+.subscription-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  /* Remove any margin that might push it down */
+  margin-top: 0;
+}
+
+.input-group {
+  width: 100%;
+  max-width: 600px;
+  display: flex;
+  /* Ensure no margin that creates gap */
+  margin-top: 0;
+}
+
+.form-control {
+  border: 1px solid #555555;
+  border-radius: 4px 0 0 4px;
+  padding: 12px 20px;
+  font-size: 16px;
+  background-color: #444444;
+  color: #ffffff;
+  flex-grow: 1;
+  /* Remove any top margin */
+  margin-top: 0;
+}
+
+.form-control::placeholder {
+  color: #aaaaaa;
+}
+
+.subscribe-btn {
+  background-color: #ff6b00;
+  color: white;
+  border: none;
+  border-radius: 0 4px 4px 0;
+  padding: 12px 30px;
+  font-weight: 500;
+  transition: background-color 0.3s;
+  white-space: nowrap;
+  /* Remove any top margin */
+  margin-top: 0;
+}
+
+.subscribe-btn:hover {
+  background-color: #e55d00;
+}
+
+/* Main Footer - VERTICAL alignment */
+.main-footer {
+  padding: 0 0 50px 0; /* Remove top padding, keep bottom */
+  background-color: #333333;
+}
+
+.main-footer .container {
+  max-width: 1200px;
+}
+
+/* Rest of your existing CSS remains the same */
+.main-footer .row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+}
+
+.main-footer .col-md-4 {
+  width: 100% !important;
+  max-width: 1000px;
+  flex: 0 0 100% !important;
+}
+
+.logo-section {
+  text-align: center;
+  width: 100%;
+  max-width: 1000px;
+}
+
+.logo-section h2 {
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ffffff;
+  font-size: 28px;
+}
+
+.logo-section p {
+  line-height: 1.6;
+  color: #cccccc;
+  font-size: 16px;
+  margin-bottom: 0;
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0 20px;
+}
+
+/* Social Media Icons */
+.social-section {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background-color: #444444;
+  border-radius: 50%;
+  color: #ffffff;
+  text-decoration: none;
+  transition: all 0.3s;
+  font-size: 18px;
+}
+
+.social-icon:hover {
+  background-color: #ff6b00;
+  color: white;
+}
+
+/* Contact Section - HORIZONTAL layout */
+.contact-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  max-width: 1000px;
+  flex-wrap: nowrap;
+}
+
+.contact-section p {
+  margin-bottom: 0;
+  line-height: 1.4;
+  font-size: 14px;
+  color: #cccccc;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Copyright Bar - Lighter gray */
+.copyright-bar {
+  background-color: #444444;
+  padding: 15px 0;
+  border-top: 1px solid #555555;
+}
+
+.copyright-bar p {
+  margin: 0;
+  color: #aaaaaa;
+  font-size: 14px;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .main-footer .container {
+    max-width: 900px;
+  }
+
+  .logo-section,
+  .logo-section p,
+  .contact-section {
+    max-width: 900px;
+  }
+}
+
+@media (max-width: 768px) {
+  .subscription-section {
+    padding-bottom: 30px;
+  }
+
+  .main-footer {
+    padding-bottom: 30px;
+  }
+
+  .main-footer .row {
+    gap: 20px;
+  }
+
+  .logo-section p {
+    font-size: 15px;
+    padding: 0 15px;
+  }
+
+  .contact-section {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .contact-section p {
+    white-space: normal;
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-section p {
+    font-size: 14px;
+  }
+  .contact-section p {
+    font-size: 13px;
+  }
+}

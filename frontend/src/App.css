@@ -4,7 +4,28 @@
   box-sizing: border-box;
 }
 
-body {
+html, body {
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  padding-top: 0;
+}
+
+/* Make sure header has proper z-index */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.navbar {
+  position: sticky;
+  top: 50px;
+  z-index: 999;
 }

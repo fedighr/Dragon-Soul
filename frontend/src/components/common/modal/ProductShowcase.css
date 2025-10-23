@@ -1,0 +1,350 @@
+/* Product Showcase Component */
+.product-showcase {
+  padding: 80px 0;
+  background: white;
+  position: relative;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.showcase-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.showcase-image {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  transition: all 0.4s ease;
+  border: 1px solid #f0f0f0;
+}
+
+.showcase-image:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.18);
+}
+
+.showcase-img {
+  width: 100%;
+  height: 500px;
+  object-fit: cover;
+  transition: transform 0.6s ease;
+}
+
+.showcase-image:hover .showcase-img {
+  transform: scale(1.08);
+}
+
+.showcase-content {
+  padding: 20px;
+}
+
+.showcase-subtitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ff6b00;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 15px;
+  display: block;
+}
+
+.showcase-title {
+  font-size: 42px;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20px;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.showcase-description {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #666;
+  margin-bottom: 30px;
+  max-width: 500px;
+}
+
+.showcase-pricing {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.original-price {
+  font-size: 24px;
+  color: #999;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.discounted-price {
+  font-size: 36px;
+  font-weight: bold;
+  color: #ff6b00;
+}
+
+.discount-badge {
+  background: #ff6b00;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.showcase-actions {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.showcase-btn {
+  padding: 15px 30px;
+  border: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.primary-btn {
+  background-color: #ff6b00;
+  color: white;
+  min-width: 180px;
+  border: 2px solid #ff6b00;
+}
+
+.primary-btn:hover {
+  background-color: #e55a00;
+  border-color: #e55a00;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
+}
+
+.secondary-btn {
+  background-color: #000000;
+  color: white;
+  min-width: 180px;
+  border: 2px solid #ff6b00;
+}
+
+.secondary-btn:hover {
+  background-color: #333;
+  color: white;
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.showcase-features {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 15px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  background: #ff6b00;
+  transform: translateY(-2px);
+}
+
+.feature-item:hover .feature-text {
+  color: white;
+}
+
+.feature-item:hover .feature-icon {
+  color: white;
+}
+
+.feature-icon {
+  font-size: 20px;
+  color: #ff6b00;
+  transition: color 0.3s ease;
+}
+
+.feature-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .showcase-container {
+    gap: 40px;
+  }
+
+  .showcase-title {
+    font-size: 36px;
+  }
+
+  .showcase-img {
+    height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .product-showcase {
+    padding: 60px 0;
+  }
+
+  .showcase-container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .showcase-title {
+    font-size: 32px;
+  }
+
+  .showcase-img {
+    height: 350px;
+  }
+
+  .showcase-description {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .showcase-actions {
+    justify-content: center;
+  }
+
+  .showcase-features {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .product-showcase {
+    padding: 40px 0;
+  }
+
+  .showcase-container {
+    padding: 0 15px;
+    gap: 30px;
+  }
+
+  .showcase-title {
+    font-size: 28px;
+  }
+
+  .showcase-subtitle {
+    font-size: 12px;
+  }
+
+  .discounted-price {
+    font-size: 30px;
+  }
+
+  .original-price {
+    font-size: 20px;
+  }
+
+  .showcase-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .showcase-btn {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .showcase-features {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .feature-item {
+    justify-content: center;
+  }
+}
+
+/* Animation on scroll */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.showcase-container {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+/* Optional: Add a decorative element that matches your website */
+.product-showcase::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #ff6b00, #e55a00);
+  border-radius: 2px;
+}
+
+/* Add a subtle pattern background if you want more visual interest */
+.product-showcase {
+  background:
+    linear-gradient(135deg, rgba(255, 107, 0, 0.02) 0%, transparent 50%),
+    white;
+}
+
+/* Hover effects for feature items */
+.feature-item {
+  transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+  transform: translateX(5px);
+}
+
+/* Better contrast for text */
+.showcase-title {
+  color: #2d2d2d;
+}
+
+.showcase-description {
+  color: #555;
+}
+
+.feature-text {
+  color: #555;
+}

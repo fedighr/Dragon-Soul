@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./NewArrivalCarousel.css";
+import "./newArrivalCarousel.js";
 import car1 from '../../../assets/images/car1.jpg';
 import car3 from '../../../assets/images/car3.jpg';
 import car4 from '../../../assets/images/car4.png';

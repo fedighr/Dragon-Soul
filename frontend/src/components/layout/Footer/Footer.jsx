@@ -74,7 +74,7 @@ const Footer = () => {
           <div className="container">
             <div className="row">
               <div className="col-12 text-center">
-                <p>Dragon Soul © 2022 Powered by Double G™ All Rights Reserved</p>
+                <p>Dragon Soul © 2025 Powered by Double G™. All Rights Reserved</p>
               </div>
             </div>
           </div>

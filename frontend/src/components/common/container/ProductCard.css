@@ -1,0 +1,352 @@
+/* Show More Card - Only show on desktop (original behavior) */
+@media (max-width: 1023px) {
+  .show-more-card {
+    display: none;
+  }
+}
+
+@media (min-width: 1024px) {
+  .show-more-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border: 2px dashed #dee2e6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    height: 400px;
+  }
+
+  .show-more-card:hover {
+    border-color: #ff6b00;
+    background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(255, 107, 0, 0.1);
+  }
+
+  .show-more-content {
+    text-align: center;
+    padding: 20px;
+  }
+
+  .show-more-icon {
+    font-size: 36px;
+    color: #ff6b00;
+    margin-bottom: 15px;
+    font-weight: 300;
+    transition: transform 0.3s ease;
+  }
+
+  .show-more-card:hover .show-more-icon {
+    transform: scale(1.1);
+  }
+
+  .show-more-btn {
+    background-color: #ff6b00;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-width: 140px;
+  }
+
+  .show-more-btn:hover {
+    background-color: #e55a00;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+  }
+}
+
+/* Lazy loading styles */
+.image-placeholder {
+  width: 100%;
+  height: 100%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+}
+
+.loading-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #ff6b00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.image-error {
+  width: 100%;
+  height: 100%;
+  background: #f8f9fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 24px;
+}
+
+/* Rest of the existing ProductCard.css remains the same */
+.product-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Mobile sizes */
+@media (max-width: 767px) {
+  .product-card {
+    height: 280px;
+  }
+}
+
+/* Tablet sizes */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .product-card {
+    height: 320px;
+  }
+}
+
+/* Desktop sizes */
+@media (min-width: 1024px) {
+  .product-card {
+    height: 400px;
+  }
+}
+
+/* Remove hover effects on mobile */
+@media (min-width: 1024px) {
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  }
+
+  .product-card:hover .product-image img {
+    transform: scale(1.1);
+  }
+
+  .product-card:hover .product-name {
+    color: #ff6b00;
+  }
+}
+
+.product-image {
+  width: 100%;
+  overflow: hidden;
+  flex-shrink: 0;
+  position: relative;
+}
+
+/* Mobile image heights */
+@media (max-width: 767px) {
+  .product-image {
+    height: 170px;
+  }
+}
+
+/* Tablet image heights */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .product-image {
+    height: 200px;
+  }
+}
+
+/* Desktop image heights */
+@media (min-width: 1024px) {
+  .product-image {
+    height: 280px;
+  }
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+/* NEW Badge */
+.new-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #ff6b00;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 3;
+}
+
+/* Product Actions - Only show on desktop hover */
+.product-actions {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+/* Show actions on desktop hover */
+@media (min-width: 1024px) {
+  .product-card:hover .product-actions {
+    opacity: 1;
+  }
+}
+
+/* Show actions on mobile tap */
+.product-card.mobile-active .product-actions {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.7);
+}
+
+/* Main Add to Cart Button */
+.action-btn.add-to-cart {
+  background-color: #ff6b00;
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 15px;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.action-btn.add-to-cart:active {
+  background-color: #e55a00;
+  transform: scale(0.95);
+}
+
+/* Secondary Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.action-btn.wishlist,
+.action-btn.view {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  border: 2px solid white;
+  background: transparent;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.action-btn.wishlist:active,
+.action-btn.view:active {
+  background-color: white;
+  color: #333;
+  transform: scale(0.95);
+}
+
+.action-btn.add-to-cart:hover {
+  background-color: #e55a00;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 0, 0.3);
+}
+
+.action-btn.wishlist:hover,
+.action-btn.view:hover {
+    background-color: #ff6b00;
+}
+
+.product-info {
+  padding: 15px;
+  text-align: center;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.product-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  transition: color 0.3s ease;
+}
+
+@media (max-width: 767px) {
+  .product-name {
+    font-size: 13px;
+  }
+}
+
+.product-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+}
+
+@media (max-width: 767px) {
+  .product-price {
+    font-size: 14px;
+  }
+}
+
+/* Empty Card - Hide on mobile */
+@media (max-width: 1023px) {
+  .empty-card {
+    display: none;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .product-actions {
+    opacity: 0;
+  }
+
+  .product-card.mobile-active .product-actions {
+    opacity: 1;
+    background: rgba(0, 0, 0, 0.7);
+  }
+}

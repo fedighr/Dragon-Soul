@@ -8,13 +8,13 @@ html, body {
   margin: 0;
   padding: 0;
   overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 
 body {
   padding-top: 0;
 }
 
-/* Make sure header has proper z-index */
 .topbar {
   position: fixed;
   top: 0;

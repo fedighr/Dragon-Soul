@@ -75,4 +75,4 @@ const HomeCarousel = () => {
     )
 };
 
-export default HomeCarousel;
+export default React.memo(HomeCarousel);

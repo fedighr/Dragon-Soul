@@ -1,12 +1,13 @@
 import React from 'react';
 import './ProductShowcase.css';
+import LazyImage from '../../ui/LazyImage';
 
 const ProductShowcase = () => {
   return (
     <section className="product-showcase">
       <div className="showcase-container">
         <div className="showcase-image">
-          <img
+          <LazyImage
             src="/images/homeimage1.jpg"
             alt="Beauty Behind the Madness"
             className="showcase-img"
@@ -36,24 +37,11 @@ const ProductShowcase = () => {
             </button>
           </div>
 
-          <div className="showcase-features">
-            <div className="feature-item">
-              <span className="feature-icon">🚚</span>
-              <span className="feature-text">Free Shipping</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">↩️</span>
-              <span className="feature-text">30-Day Return</span>
-            </div>
-            <div className="feature-item">
-              <span className="feature-icon">🔒</span>
-              <span className="feature-text">Secure Payment</span>
-            </div>
-          </div>
+          {/* Supprimé la section des features comme demandé */}
         </div>
       </div>
     </section>
   );
 };
 
-export default ProductShowcase;
+export default React.memo(ProductShowcase);

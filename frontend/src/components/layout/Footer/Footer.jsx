@@ -35,7 +35,7 @@ const Footer = () => {
                 <div className="logo-section">
                     <h2>Dragon Soul</h2>
                    <p>
-                       This is Photoshop's version of Lorem Ipsum. Proin gravida nibh vel velit auctor aliquet. Aenean sollicitudin, lorem quis bibendum auctor, nisi elit consequat ipsum, nec sagittis sem nibh id elit.
+                       Dragon Soul is an ecommerce platform dedicated to delivering stylish and comfortable T-shirts. Browse our collection and find the perfect fit for your personality.
                   </p>
                 </div>
               </div>
@@ -62,7 +62,7 @@ const Footer = () => {
               <div className="col-md-4">
                 <div className="contact-section">
                   <p>   <i className="bi bi-house-fill text-warning">      </i>Ksour Essef, Mahdia, Tunisia.</p>
-                  <p>   <i className="bi bi-envelope-fill text-warning me-1">    </i>info@yourtheme.com</p>
+                  <p>   <i className="bi bi-envelope-fill text-warning me-1">    </i>topfadighribi11@gmail.com</p>
                   <p>   <i className="bi bi-telephone-fill text-warning me-1">      </i>+216-50078199 : +216-97370975</p>
                 </div>
               </div>

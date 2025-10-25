@@ -23,6 +23,7 @@
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
   transition: all 0.4s ease;
   border: 1px solid #f0f0f0;
+  background: #f8f9fa;
 }
 
 .showcase-image:hover {
@@ -34,11 +35,11 @@
   width: 100%;
   height: 500px;
   object-fit: cover;
-  transition: transform 0.6s ease;
+  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .showcase-image:hover .showcase-img {
-  transform: scale(1.08);
+  transform: scale(1.05);
 }
 
 .showcase-content {
@@ -128,73 +129,78 @@
 }
 
 .primary-btn {
-  background-color: #ff6b00;
-  color: white;
+  background-color: #ff6b00 !important;
+  color: white !important;
   min-width: 180px;
-  border: 2px solid #ff6b00;
+  border: 2px solid #ff6b00 !important;
 }
 
 .primary-btn:hover {
-  background-color: #e55a00;
-  border-color: #e55a00;
+  background-color: #e55a00 !important;
+  border-color: #e55a00 !important;
   transform: translateY(-3px);
   box-shadow: 0 10px 25px rgba(255, 107, 0, 0.3);
 }
 
+/* BOUTON "VIEW DETAILS" EN NOIR */
 .secondary-btn {
-  background-color: #000000;
-  color: white;
+  background-color: #000000 !important;
+  color: white !important;
   min-width: 180px;
-  border: 2px solid #ff6b00;
+  border: 2px solid #000000 !important;
 }
 
 .secondary-btn:hover {
-  background-color: #333;
-  color: white;
+  background-color: #333 !important;
+  color: white !important;
+  border-color: #333 !important;
   transform: translateY(-3px);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
 }
 
+/* SUPPRIMÉ LA SECTION DES FEATURES */
 .showcase-features {
-  display: flex;
-  gap: 30px;
-  flex-wrap: wrap;
+  display: none !important;
 }
 
 .feature-item {
+  display: none !important;
+}
+
+/* Lazy loading styles */
+.image-placeholder {
+  width: 100%;
+  height: 500px;
+  background: #f8f9fa;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 15px;
+  justify-content: center;
+  color: #6c757d;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #ff6b00;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.image-error {
+  width: 100%;
+  height: 500px;
   background: #f8f9fa;
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.feature-item:hover {
-  background: #ff6b00;
-  transform: translateY(-2px);
-}
-
-.feature-item:hover .feature-text {
-  color: white;
-}
-
-.feature-item:hover .feature-icon {
-  color: white;
-}
-
-.feature-icon {
-  font-size: 20px;
-  color: #ff6b00;
-  transition: color 0.3s ease;
-}
-
-.feature-text {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
-  transition: color 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+  font-size: 24px;
 }
 
 /* Responsive Design */
@@ -208,6 +214,11 @@
   }
 
   .showcase-img {
+    height: 400px;
+  }
+
+  .image-placeholder,
+  .image-error {
     height: 400px;
   }
 }
@@ -231,16 +242,17 @@
     height: 350px;
   }
 
+  .image-placeholder,
+  .image-error {
+    height: 350px;
+  }
+
   .showcase-description {
     margin-left: auto;
     margin-right: auto;
   }
 
   .showcase-actions {
-    justify-content: center;
-  }
-
-  .showcase-features {
     justify-content: center;
   }
 }
@@ -280,15 +292,6 @@
     width: 100%;
     max-width: 280px;
   }
-
-  .showcase-features {
-    flex-direction: column;
-    gap: 15px;
-  }
-
-  .feature-item {
-    justify-content: center;
-  }
 }
 
 /* Animation on scroll */
@@ -320,31 +323,11 @@
   border-radius: 2px;
 }
 
-/* Add a subtle pattern background if you want more visual interest */
-.product-showcase {
-  background:
-    linear-gradient(135deg, rgba(255, 107, 0, 0.02) 0%, transparent 50%),
-    white;
+/* Performance optimizations */
+.showcase-image {
+  transform: translateZ(0);
 }
 
-/* Hover effects for feature items */
-.feature-item {
-  transition: all 0.3s ease;
-}
-
-.feature-item:hover {
-  transform: translateX(5px);
-}
-
-/* Better contrast for text */
-.showcase-title {
-  color: #2d2d2d;
-}
-
-.showcase-description {
-  color: #555;
-}
-
-.feature-text {
-  color: #555;
+.showcase-btn {
+  will-change: transform;
 }

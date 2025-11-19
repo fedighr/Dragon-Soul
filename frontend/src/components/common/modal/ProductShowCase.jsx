@@ -37,7 +37,6 @@ const ProductShowcase = () => {
             </button>
           </div>
 
-          {/* Supprimé la section des features comme demandé */}
         </div>
       </div>
     </section>

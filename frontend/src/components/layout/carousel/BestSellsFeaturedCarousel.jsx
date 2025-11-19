@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import "./BestSellsFeaturedCarousel.css";
 import ProductCard from "../../common/container/ProductCard.jsx";
 
-// Import images directly (use same images for now)
+
 import car1 from '../../../assets/images/car1.jpg';
 import car3 from '../../../assets/images/car3.jpg';
 import car4 from '../../../assets/images/car4.png';
@@ -52,19 +52,19 @@ const BestSellsFeaturedCarousel = () => {
   const itemsPerSlide = 4;
 
   const totalSlides = isMobile
-    ? Math.ceil(currentProducts.length / itemsPerSlide) // Mobile: no show more button in grid
-    : Math.ceil((currentProducts.length + 1) / itemsPerSlide); // Desktop: include show more button
+    ? Math.ceil(currentProducts.length / itemsPerSlide)
+    : Math.ceil((currentProducts.length + 1) / itemsPerSlide);
 
   const handleTabChange = (tab) => {
     if (tab === activeTab || isTransitioning) return;
 
     setIsTransitioning(true);
-    setActiveIndex(0); // Reset to first slide when changing tabs
+    setActiveIndex(0);
 
     setTimeout(() => {
       setActiveTab(tab);
       setIsTransitioning(false);
-    }, 300); // Match this with CSS transition duration
+    }, 300);
   };
 
   const nextSlide = () => {
@@ -93,7 +93,6 @@ const BestSellsFeaturedCarousel = () => {
 
     const slideProducts = currentProducts.slice(start, end);
 
-    // Add Show More card to the last slide only on desktop
     if (!isMobile && slideIndex === totalSlides - 1) {
       return [
         ...slideProducts,

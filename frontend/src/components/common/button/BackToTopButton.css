@@ -1,0 +1,44 @@
+.back-to-top-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 45px;
+  height: 45px;
+  background-color: black;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: transform 0.3s;
+}
+
+.back-to-top-container:hover {
+  transform: scale(1.1);
+}
+
+.progress-circle {
+  position: absolute;
+  transform: rotate(-90deg);
+}
+
+.progress-circle circle {
+  fill: none;
+  stroke-width: 4;
+  stroke: rgba(255, 255, 255, 0.3);
+}
+
+.progress-circle circle:nth-child(2) {
+  stroke: #ff6b00;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.2s;
+}
+
+.arrow {
+  position: absolute;
+  font-size: 16px; /* plus petit */
+  color: white;
+  font-weight: bold;
+  pointer-events: none;
+}

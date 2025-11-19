@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./Navbar.css";
+import { Link } from "react-router-dom";
+import Footer from "../Footer/Footer.jsx";
 
 const Navbar = ({ image }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -16,7 +18,6 @@ const Navbar = ({ image }) => {
   return (
     <nav className="navbar">
       <div className="nav-container">
-        {/* Mobile Menu Button */}
         <button
           className="nav-toggle"
           onClick={toggleMobileMenu}
@@ -40,12 +41,11 @@ const Navbar = ({ image }) => {
           )}
         </div>
 
-        {/* Desktop Menu */}
         <div className="nav-menu">
-          <a href="#" className="nav-link">HOME</a>
-          <a href="#" className="nav-link">MEN</a>
+          <Link to="/" className="nav-link">Home</Link>
+          <Link to="/product" className="nav-link">MEN</Link>
           <a href="#" className="nav-link">WOMEN</a>
-          <a href="#" className="nav-link">STORE</a>
+          <Link to="/Store" className="nav-link">STORE</Link>
           <a href="#" className="nav-link">ABOUT</a>
         </div>
 
@@ -60,13 +60,11 @@ const Navbar = ({ image }) => {
           </div>
         </div>
 
-        {/* Mobile Search Button */}
         <button className="mobile-search-btn" onClick={toggleSearch}>
           <i className="bi bi-search"></i>
         </button>
       </div>
 
-      {/* Mobile Menu */}
       <div className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}>
         <a href="#" className="mobile-nav-link" onClick={toggleMobileMenu}>HOME</a>
         <a href="#" className="mobile-nav-link" onClick={toggleMobileMenu}>MEN</a>

@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import "./ProductCard.css";
+import { useNavigate } from 'react-router-dom';
 
 const ProductCard = ({ product, onShowMore }) => {
   const [isMobileActive, setIsMobileActive] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-
+  const navigate = useNavigate();
   const handleCardClick = (e) => {
     if (window.innerWidth < 1024) {
       e.stopPropagation();
@@ -88,7 +89,11 @@ const ProductCard = ({ product, onShowMore }) => {
             <button className="action-btn wishlist" title="Add to wishlist">
               <i className="bi bi-heart"></i>
             </button>
-            <button className="action-btn view" title="View Product">
+            <button
+                className="action-btn view"
+                title="View Product"
+                onClick={() => navigate('/Product')}
+            >
               <i className="bi bi-eye"></i>
             </button>
           </div>

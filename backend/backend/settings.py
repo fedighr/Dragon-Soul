@@ -32,9 +32,9 @@ load_dotenv()  # loads variables from .env into environment
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG') == 'True'
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS').split(',')
+ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'https://dragon-soul.onrender.com').split(',')
 
-#ALLOWED_HOSTS = []
+#ALLOWED_HOSTS = ['os.environ.get('DJANGO_ALLOWED_HOSTS').split(',')', 'https://dragon-soul.onrender.com']
 
 
 # Application definition
@@ -65,6 +65,8 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = 'backend.urls'
+
+CSRF_TRUSTED_ORIGINS = ['https://dragon-soul.onrender.com']
 
 TEMPLATES = [
     {

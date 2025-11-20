@@ -32,8 +32,7 @@ load_dotenv()  # loads variables from .env into environment
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = os.environ.get('DEBUG') == 'True'
-ALLOWED_HOSTS = os.environ.get('DJANGO_ALLOWED_HOSTS', 'dragon-soul.onrender.com')
-ALLOWED_HOSTS = [host.strip() for host in ALLOWED_HOSTS.split(',') if host.strip()]
+ALLOWED_HOSTS = ['*']
 
 
 #ALLOWED_HOSTS = ['os.environ.get('DJANGO_ALLOWED_HOSTS').split(',')', 'https://dragon-soul.onrender.com']

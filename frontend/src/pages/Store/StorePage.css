@@ -1069,3 +1069,14 @@
 .mobile-modal-content::-webkit-scrollbar-thumb:hover {
   background: #e55a00;
 }
+.desktop-controls {
+  display: flex;
+  gap: 10px;
+}
+
+
+@media (max-width: 768px) {
+  .desktop-controls {
+    display: none;
+  }
+}

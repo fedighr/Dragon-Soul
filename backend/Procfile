@@ -1,1 +1,1 @@
-web: gunicorn dragon-soul.wsgi
+web: gunicorn backend.wsgi

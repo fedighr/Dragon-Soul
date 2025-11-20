@@ -89,7 +89,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgres://fedi:50078199@localhost:5432/dragon_soul'
+        default=os.environ.get('DATABASE_URL')  # safe fallback
     )
 }
 

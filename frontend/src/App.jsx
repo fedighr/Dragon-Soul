@@ -1,7 +1,8 @@
 import React from "react";
 import Home from "./pages/home/Home";
 import Store from "./pages/Store/StorePage.jsx";
-import Product from "./pages/product/Product.jsx";
+import Login from "./pages/Auth/Login.jsx";
+import SignUp from "./pages/Auth/SignUp.jsx";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -12,7 +13,8 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/Store" element={<Store />} />
-                <Route path="/product" element={<Product />} />
+                <Route path="/SignUp" element={<SignUp />} />
+                <Route path="/login" element={<Login />} />
             </Routes>
         </Router>
 

@@ -1,13 +1,14 @@
 import React from "react";
 import "./Topbar.css"
+import {Link} from "react-router-dom"
 const Topbar = () => {
     return (
         <div className="topbar">
 
             <div className="connexion">
-                <a href="#">Login</a>
+                <Link to="/login">Login</Link>
                 <p>|</p>
-                <a href="#">Register</a>
+                <Link to="/SignUp">Sign Up</Link>
             </div>
 
             <div className="contacts">

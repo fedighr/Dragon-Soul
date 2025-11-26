@@ -45,3 +45,16 @@ export const RegisterUser = async (data) => {
     }
   }
 };
+
+/*export const SendAuthEmail = async (email) =>{
+    try{
+        const response = await api.post("/users/sendAuthEmail/", {email});
+        return response.data;
+    }catch(error){
+        if (error.response) {
+            throw error.response.data;
+        }else{
+            throw { error: "Network error" };
+        }
+    }
+}*/

@@ -21,7 +21,6 @@ export const useStorePage = () => {
   const sortRef = useRef(null);
   const filterRef = useRef(null);
 
-  // Scroll effect
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;

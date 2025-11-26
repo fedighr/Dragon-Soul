@@ -139,7 +139,7 @@ const Login = () => {
               )}
 
               <div className="login-links">
-                <a href="/forgot-password" className="login-link">Forgot your password?</a>
+                <Link to="/reset-password" className="login-link">Forgot your password?</Link>
                 <Link to="/SignUp" className="login-link register-link">
                   Don't have an account? <span>Create one</span>
                 </Link>

@@ -1,6 +1,6 @@
 // hooks/useSignUp.js
 import { useState, useRef, useEffect } from 'react';
-import { EmailVerify, PhoneNumberVerify, RegisterUser } from '../services/SignUp.js'
+import { EmailVerify, PhoneNumberVerify, RegisterUser/*, SendAuthEmail*/ } from '../services/SignUp.js'
 import { useNavigate } from "react-router-dom";
 
 export const useSignUp = () => {
@@ -62,7 +62,7 @@ export const useSignUp = () => {
   };
 
   const getSelectedCountry = () => {
-    return countryCodes.find(country => country.code === countryCode) || countryCodes[1]; // Default to Tunisia
+    return countryCodes.find(country => country.code === countryCode) || countryCodes[1];
   };
 
   const validateField = async (name, value) => {
@@ -98,19 +98,19 @@ export const useSignUp = () => {
         } else {
           delete newErrors.email;
           setVerifyingEmail(true);
-          try {
-            const data = await EmailVerify(value);
-            if (data.message === "email is used") {
+            try {
+              const response = await EmailVerify(value);
+              if (response.status === 400) {
+                newErrors.email = "Email is already used";
+              } else if (response.status === 200) {
+                delete newErrors.email;
+              }
+            } catch (err) {
+              console.error(err);
               newErrors.email = "Email is already used";
-            } else if (data.message === "email not found") {
-              delete newErrors.email;
+            } finally {
+              setVerifyingEmail(false);
             }
-          } catch (err) {
-            console.error(err);
-            newErrors.email = "Email is already used";
-          } finally {
-            setVerifyingEmail(false);
-          }
         }
         break;
       }
@@ -281,11 +281,15 @@ export const useSignUp = () => {
       const response = await RegisterUser(userData);
       console.log(response.data);
 
+      /*const res = await SendAuthEmail(formData.email);
+      console.log(res);*/
+
+
       setShowSuccessLoader(true);
       setMessage('');
 
       setTimeout(() => {
-        navigate("/login");
+      navigate("/verification", { state: { email: userData.email } });
       }, 3000);
 
     } catch (error) {

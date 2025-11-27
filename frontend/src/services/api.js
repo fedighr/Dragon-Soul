@@ -5,6 +5,7 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
 // List of public endpoints that do NOT need authentication
@@ -20,6 +21,7 @@ const PUBLIC_ENDPOINTS = [
     "/users/ResetPassword2/",
     "/users/ResetPassword3/",
     "/users/verifyEmailUsed/",
+    "/store/products/",
   // Add any other public endpoints here
 ];
 

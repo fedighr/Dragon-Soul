@@ -31,7 +31,6 @@ export const useStorePage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
 
-  // Click outside dropdowns
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (sortRef.current && !sortRef.current.contains(e.target)) setSortOpen(false);
@@ -41,11 +40,9 @@ export const useStorePage = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Close other panel when one opens
   useEffect(() => { if (sortOpen) setFilterOpen(false); }, [sortOpen]);
   useEffect(() => { if (filterOpen) setSortOpen(false); }, [filterOpen]);
 
-  // Fetch products when filters/sort/category change
   useEffect(() => {
     const loadProducts = async () => {
       const products = await fetchProducts(activeFilters, selectedSort, selectedCategory);
@@ -54,7 +51,6 @@ export const useStorePage = () => {
     loadProducts();
   }, [activeFilters, selectedSort, selectedCategory]);
 
-  // Handlers
   const handleSortSelect = (option) => setSelectedSort(option);
   const handleSizeToggle = (size) => setActiveFilters(prev => ({
     ...prev,

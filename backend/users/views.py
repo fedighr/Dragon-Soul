@@ -1,14 +1,12 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.contrib.auth import authenticate
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, MyTokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-from django.contrib.auth import authenticate
 from utils.email_service import send_email
 from utils.otp_service import OTPService
-from rest_framework_simplejwt.views import TokenRefreshView
+from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
 
 class AuthView(APIView):
 
@@ -18,33 +16,50 @@ class AuthView(APIView):
             serializer = UserSerializer(data=request.data)
 
             if serializer.is_valid():
-                user = serializer.save()
-                code = self.SendVerificationEmail(request.data.get('email'))
-                user.verification_code = code
-                user.save() 
+                email = request.data.get("email")
+                if not email:
+                    return Response({'success': False, 'message':'email not found'}, status=status.HTTP_404_NOT_FOUND)
                 
-                                               
-                return Response({'success': True, 'message': 'register successfully'}, status=status.HTTP_201_CREATED)
+                existing_user = User.objects.filter(email=email).first()
+                if existing_user:
+                    if existing_user.is_verified:
+                        print("error")
+                        return Response({'success': False, 'message':'email already used'}, status=status.HTTP_400_BAD_REQUEST)
+                    
+                    else:
+                        code = self.SendVerificationEmail(email)
+                        existing_user.verification_code = code
+                        existing_user.save()
+                        return Response({'success': True, 'message':'verification code resent'}, status=status.HTTP_200_OK)
+                
+                code = self.SendVerificationEmail(email)
+                user = serializer.save(verification_code=code)
+                return Response({'success': True, 'message':'registered successfully'}, status=status.HTTP_201_CREATED)
+            print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
                 
-        elif action == "login":
-            email = request.data.get('email')
-            password = request.data.get('password')
+        #elif action == "login":
+        #    email = request.data.get('email')
+        #    password = request.data.get('password')
 
-            user = authenticate(email=email, password=password)
+        #    user = authenticate(email=email, password=password)
 
-            if user:
-                refresh = RefreshToken.for_user(user)
-                return Response({
-                    'success': True,
-                    'message': 'login successfully',
-                    'access': str(refresh.access_token),
-                    'refresh': str(refresh)
-                }, status=status.HTTP_200_OK)
+        #    if user:
+        #        refresh = RefreshToken.for_user(user)
+        #        refresh['email'] = user.email
+        #        refresh['username'] = user.username
+        #        refresh['is_verified'] = user.is_verified
+
+        #        return Response({
+        #            'success': True,
+        #            'message': 'login successfully',
+        #           'access': str(refresh.access_token),
+        #            'refresh': str(refresh)
+        #        }, status=status.HTTP_200_OK)
             
-            else:
-                return Response({'success': False, 'message': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)               
+        #    else:
+        #        return Response({'success': False, 'message': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)               
 
         
         elif action == "verifyEmail":
@@ -53,7 +68,7 @@ class AuthView(APIView):
             if not email:
                 return Response({'success': False, 'message':'email not found'},status=status.HTTP_404_NOT_FOUND)
             
-            if User.objects.filter(email=email).exists():
+            if User.objects.filter(email=email, is_verified=True).exists():
                 return Response({'success': False, 'message':'email is used'},status=status.HTTP_400_BAD_REQUEST)
             
             else:
@@ -78,7 +93,7 @@ class AuthView(APIView):
             if not phone:
                 return Response({'success' : False, 'message':'phone number not found'},status=status.HTTP_404_NOT_FOUND)  
                       
-            if User.objects.filter(phone_number=phone).exists():
+            if User.objects.filter(phone_number=phone, is_verified=True).exists():
                 return Response({'success' : False, 'message':'phone number is used'},status=status.HTTP_400_BAD_REQUEST)
             
             else:
@@ -153,10 +168,6 @@ class AuthView(APIView):
                     return Response({'success': False, 'message': 'Password not changed'}, status=500)
             
             
-
-            
-
-
     
     @staticmethod
     def SendVerificationEmail(email):
@@ -203,4 +214,5 @@ class SafeTokenRefreshView(TokenRefreshView):
                 status=status.HTTP_401_UNAUTHORIZED
             )
 
-
+class MyLoginView(TokenObtainPairView):
+    serializer_class = MyTokenObtainPairSerializer

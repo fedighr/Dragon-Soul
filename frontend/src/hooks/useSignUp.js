@@ -27,7 +27,6 @@ export const useSignUp = () => {
   const [showCountryList, setShowCountryList] = useState(false);
   const navigate = useNavigate();
 
-  // Refs for focusing on errors
   const firstNameRef = useRef(null);
   const lastNameRef = useRef(null);
   const emailRef = useRef(null);
@@ -102,7 +101,7 @@ export const useSignUp = () => {
               const response = await EmailVerify(value);
               if (response.status === 400) {
                 newErrors.email = "Email is already used";
-              } else if (response.status === 200) {
+              } else if (response.status === 200 && response.status === 201)  {
                 delete newErrors.email;
               }
             } catch (err) {
@@ -268,10 +267,8 @@ export const useSignUp = () => {
       setMessage('Please fix the errors above');
       return;
     }
-
     setIsSubmitting(true);
-    setMessage('Creating your account...');
-
+    setMessage("Redirect to verification");
     try {
       const userData = {
         ...formData,

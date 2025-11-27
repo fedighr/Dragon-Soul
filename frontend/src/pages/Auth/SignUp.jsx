@@ -50,9 +50,9 @@ const SignUp = () => {
             <p className="success-loader-subtext">
               Your account has been created successfully
             </p>
-            <ButtonLoadingSpinner text="Redirecting to login..." />
+            <ButtonLoadingSpinner text="Redirecting to verification..." />
             <p className="success-redirect-text">
-              You will be redirected to the login page shortly
+              You will be redirected to the verification page shortly
             </p>
           </div>
         </div>

@@ -50,15 +50,11 @@ export const useLogin = () => {
       if (data.access && data.refresh) {
         setMessage("Welcome back, Dragon Master! 🐉");
 
-        if (keepLoggedIn) {
-          localStorage.setItem("access", data.access);
-          localStorage.setItem("refresh", data.refresh);
-        } else {
-          sessionStorage.setItem("access", data.access);
-          sessionStorage.setItem("refresh", data.refresh);
-        }
+        setTimeout(() => {
+          console.log("Timeout finished!");
+          navigate("/");
+        }, 2000);
 
-        setTimeout(() => navigate("/"), 2000);
       } else {
         setMessage(data.detail || "Login failed. Please try again.");
       }

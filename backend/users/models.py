@@ -34,6 +34,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     is_verified = models.BooleanField(default=False)
     verification_code = models.CharField(max_length=6, null=True, blank=True)
+    code_expired_date = models.DateTimeField(null=True, blank=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']

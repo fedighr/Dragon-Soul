@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect} from "react";
 import { fetchProducts } from "../services/product.js";
-
+import { jwtDecode } from "jwt-decode";
 
 export const useStorePage = () => {
   const [products, setProducts] = useState([]);
@@ -63,7 +63,18 @@ export const useStorePage = () => {
   const handlePriceChange = (min, max) => setActiveFilters(prev => ({ ...prev, priceRange: [min, max] }));
   const handleClearFilters = () => setActiveFilters({ priceRange: [0,1000], sizes: [], colors: [] });
   const handleCategorySelect = (category) => setSelectedCategory(category);
+    const accessToken = localStorage.getItem("access");
+    const refreshToken = localStorage.getItem("refresh");
 
+    if (accessToken) {
+      const decoded = jwtDecode(accessToken);
+      console.log("Access token expires at (timestamp):", decoded.exp);
+    }
+
+    if (refreshToken) {
+      const decodedRefresh = jwtDecode(refreshToken);
+      console.log("Refresh token expires at (timestamp):", decodedRefresh.exp);
+    }
   return {
     products,
     filteredProducts,

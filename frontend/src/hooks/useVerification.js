@@ -65,17 +65,25 @@ export const useVerification = () => {
     if (!validateForm()) return;
 
     setLoading(true);
-
+    let data;
     try {
-      const data = await VerifyAuthCode(email,code);
+      data = await VerifyAuthCode(email,code);
       setMessage(data.message || "Email verified successfully!");
       console.log(data.success);
 
       setTimeout(() => {
         navigate("/login");
-      }, 2000);
-    } catch (err) {
-      setMessage(err.error || "Verification failed. Please try again.");
+      }, 1000);
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 408) {
+        setMessage(error.response?.data?.error || "Your verification code has expired. We will send you a new one shortly.");
+      } else if (status) {
+        setMessage(error.response?.data?.error || "Invalid verification code. Please try again.");
+      } else {
+        console.log("Error object:", error);
+        setMessage(error.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }

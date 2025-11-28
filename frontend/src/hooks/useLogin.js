@@ -53,7 +53,7 @@ export const useLogin = () => {
         setTimeout(() => {
           console.log("Timeout finished!");
           navigate("/");
-        }, 2000);
+        }, 1000);
 
       } else {
         setMessage(data.detail || "Login failed. Please try again.");

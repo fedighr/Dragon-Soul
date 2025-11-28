@@ -1,7 +1,7 @@
 
 import secrets
-import time
-
+from django.utils import timezone   
+from datetime import timedelta
 class OTPService:
     EXPIRATION_SECONDS = 300
 
@@ -15,10 +15,10 @@ class OTPService:
 
         return {
             "code": OTPService.generate_code(),
-            "expires_at": int(time.time()) + OTPService.EXPIRATION_SECONDS
+            "expires_at": timezone.now() + timedelta(seconds=OTPService.EXPIRATION_SECONDS)
         }
 
     @staticmethod
     def is_expired(expires_at):
 
-        return time.time() > expires_at
+        return timezone.now() > expires_at

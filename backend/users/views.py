@@ -3,15 +3,15 @@ from rest_framework.response import Response
 from rest_framework import status
 from .models import User
 from .serializers import UserSerializer, MyTokenObtainPairSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
+#from rest_framework_simplejwt.tokens import RefreshToken
 from utils.email_service import send_email
 from utils.otp_service import OTPService
-from rest_framework_simplejwt.views import TokenRefreshView, TokenObtainPairView
+from rest_framework_simplejwt.views import TokenObtainPairView
+#from rest_framework_simplejwt.views import TokenRefreshView
 
 class AuthView(APIView):
 
     def post(self, request, action=None):
-
         if action == "register":
             serializer = UserSerializer(data=request.data)
 
@@ -27,13 +27,12 @@ class AuthView(APIView):
                         return Response({'success': False, 'message':'email already used'}, status=status.HTTP_400_BAD_REQUEST)
                     
                     else:
-                        code = self.SendVerificationEmail(email)
-                        existing_user.verification_code = code
-                        existing_user.save()
+                        serializer.save()
+                        self.SendVerificationEmail(email)
                         return Response({'success': True, 'message':'verification code resent'}, status=status.HTTP_200_OK)
                 
-                code = self.SendVerificationEmail(email)
-                user = serializer.save(verification_code=code)
+                serializer.save()
+                self.SendVerificationEmail(email)
                 return Response({'success': True, 'message':'registered successfully'}, status=status.HTTP_201_CREATED)
             print(serializer.errors)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -42,22 +41,22 @@ class AuthView(APIView):
         #elif action == "login":
         #    email = request.data.get('email')
         #    password = request.data.get('password')
-
+        #
         #    user = authenticate(email=email, password=password)
-
+        #
         #    if user:
         #        refresh = RefreshToken.for_user(user)
         #        refresh['email'] = user.email
         #        refresh['username'] = user.username
         #        refresh['is_verified'] = user.is_verified
-
+        #
         #        return Response({
         #            'success': True,
         #            'message': 'login successfully',
         #           'access': str(refresh.access_token),
         #            'refresh': str(refresh)
         #        }, status=status.HTTP_200_OK)
-            
+        #    
         #    else:
         #        return Response({'success': False, 'message': 'Invalid email or password'}, status=status.HTTP_400_BAD_REQUEST)               
 
@@ -88,7 +87,6 @@ class AuthView(APIView):
             
             
         elif action == "verifyPhone":
-
             phone = request.data.get("phoneNumber")
             if not phone:
                 return Response({'success' : False, 'message':'phone number not found'},status=status.HTTP_404_NOT_FOUND)  
@@ -100,80 +98,111 @@ class AuthView(APIView):
                 return Response({'success': True, 'message':'phone number correct'},status=status.HTTP_200_OK)
             
             
-        elif(action == "VerifyCode"):
+        elif action == "VerifyCode":
             email = request.data.get('email')
 
             if not email:
                 return Response ({'success' : False, 'message' : 'Email not found'},status=status.HTTP_400_BAD_REQUEST)
             
-            code = User.objects.get(email=email).verification_code
-            if request.data.get("code") == str(code):
-                User.objects.filter(email=email).update(is_verified=True)
-                return Response ({'success' : True, 'message' : 'Verification Complete with Success'},status=status.HTTP_200_OK)  
-             
-            return Response ({'success' : False, 'message' : 'Code invalid'},status=status.HTTP_406_NOT_ACCEPTABLE) 
+            try:
+                user = User.objects.get(email=email)
+                code = user.verification_code
+                expired_date = user.code_expired_date
+                if request.data.get("code") == str(code):
+                    if not OTPService.is_expired(expired_date):
+                        User.objects.filter(email=email).update(is_verified=True)
+                        return Response ({'success' : True, 'message' : 'Verification Complete with Success'},status=status.HTTP_200_OK) 
+                     
+                    else:
+                        self.SendVerificationEmail(email)
+                        return Response({'success' : False, 'message' : 'Your verification code has expired. We will send you a new one shortly.'},status=status.HTTP_408_REQUEST_TIMEOUT)
+                 
+                return Response ({'success' : False, 'message' : 'Code invalid'},status=status.HTTP_406_NOT_ACCEPTABLE)
+            except User.DoesNotExist:
+                return Response({'success': False, 'message': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
         
         
-        elif(action == "ResendCode"):
+        elif action == "ResendCode":
             email = request.data.get('email')
 
             if not email:
                 return Response({'success': False, 'message': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
 
-            code = self.SendVerificationEmail(email)
-
-            if code is not None:
-                User.objects.filter(email=email).update(verification_code=code)
+            if self.SendVerificationEmail(email):
                 return Response({'success': True, 'message': 'Code resend'}, status=status.HTTP_200_OK)
 
             return Response({'success': False, 'message': 'Email send failed'}, status=status.HTTP_400_BAD_REQUEST)
         
 
-        elif(action[0:-1] == "ResetPassword"):
-            step = int(action[-1])
-            if(step == 1):
+        elif action and action.startswith("ResetPassword"):
+            step_str = action.replace("ResetPassword", "")
+            if not step_str.isdigit():
+                return Response({'success': False, 'message': 'Invalid reset password action'}, status=status.HTTP_400_BAD_REQUEST)
+                
+            step = int(step_str)
+            if step == 1:
                 email = request.data.get('email')
                 if not User.objects.filter(email=email).exists():
                     return Response({'success' : False, 'message' : 'Email not found'},status=status.HTTP_404_NOT_FOUND)
                 
-                code = self.SendVerificationEmail(email)
-                if(code is not None):
-                    User.objects.filter(email=email).update(verification_code=code)
+                if self.SendVerificationEmail(email):
                     return Response ({'success' : True, 'message' : 'Email send. Check your inbox'},status=status.HTTP_200_OK)
                 
                 return Response({'success' : False, 'message' : 'Error'},status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            if(step == 2):
+            elif step == 2:
                 email = request.data.get('email')
-                code = User.objects.get(email=email).verification_code
                 if not email:
                     return Response({'success': False, 'message': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
+                
+                try:
+                    user = User.objects.get(email=email)
+                    code = user.verification_code
+                    print(code,request.data.get('code'))
+                    expired_date = user.code_expired_date
                     
-                if(str(code) == request.data.get('code')):
-                    return Response ({'success' : True, 'message' : 'Code match. Change your password'},status=status.HTTP_200_OK)
-                return Response({'success' : False, 'message' : 'Code not matched'},status=status.HTTP_400_BAD_REQUEST)
+                    if code == request.data.get('code'):
+                        if not OTPService.is_expired(expired_date):
+                            return Response ({'success' : True, 'message' : 'Code match. Change your password'},status=status.HTTP_200_OK)
+                        else:
+                            self.SendVerificationEmail(email)
+                            return Response({'success' : False, 'message' : 'Your verification code has expired. We will send you a new one shortly.'},status=status.HTTP_408_REQUEST_TIMEOUT)
+                    return Response({'success' : False, 'message' : 'Code not matched'},status=status.HTTP_400_BAD_REQUEST)
+                except User.DoesNotExist:
+                    return Response({'success': False, 'message': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
             
-            if(step == 3):
+            elif step == 3:
                 email = request.data.get('email')
                 password = request.data.get('password')
+                
+                if not email or not password:
+                    return Response({'success': False, 'message': 'Email and password are required'}, status=status.HTTP_400_BAD_REQUEST)
                 
                 try:
                     user = User.objects.get(email=email)
                     user.set_password(password)
                     user.save()
-                    return Response({'success': True, 'message': 'Password changed. Welcome Dragon Master!'}, status=200)
+                    return Response({'success': True, 'message': 'Password changed. Welcome Dragon Master!'}, status=status.HTTP_200_OK)
                 except User.DoesNotExist:
-                    return Response({'success': False, 'message': 'Email not found'}, status=404)
+                    return Response({'success': False, 'message': 'Email not found'}, status=status.HTTP_404_NOT_FOUND)
                 except Exception as e:
-                    return Response({'success': False, 'message': 'Password not changed'}, status=500)
-            
+                    return Response({'success': False, 'message': 'Password not changed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            else:
+                return Response({'success': False, 'message': 'Invalid step'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        else:
+            return Response({'success': False, 'message': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
             
     
     @staticmethod
     def SendVerificationEmail(email):
         otp = OTPService.create_otp()
-        code = otp["code"] 
         try:
+            user = User.objects.filter(email=email).first()
+            if not user:
+                print(f"User with email {email} not found")
+                return False
+                
             send_email(
                 to_email=email,
                 subject="Welcome to our website !",
@@ -191,20 +220,22 @@ class AuthView(APIView):
                     </div>
                 </body>
                 </html>
-                """.format(otp_code=code))
+                """.format(otp_code=otp["code"]))
+            
+            user.verification_code = otp['code']
+            user.code_expired_date = otp['expires_at']
+            user.save()
+            return True
         except Exception as e:
             print("Erreur envoi email :", e)
-            return None
-        return code         
+            return False       
 
     """ def get(self,request,action=None):
-
-        
         
         return Response({'message': 'invalid request'}, status=status.HTTP_400_BAD_REQUEST)"""
     
 
-class SafeTokenRefreshView(TokenRefreshView):
+"""class SafeTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         try:
             return super().post(request, *args, **kwargs)
@@ -212,7 +243,7 @@ class SafeTokenRefreshView(TokenRefreshView):
             return Response(
                 {"detail": "User does not exist."},
                 status=status.HTTP_401_UNAUTHORIZED
-            )
+            )"""
 
 class MyLoginView(TokenObtainPairView):
     serializer_class = MyTokenObtainPairSerializer

@@ -102,7 +102,6 @@ const Verification = () => {
                 </button>
               </div>
 
-              {/* Message Display */}
               {message && (
                 <div className={`email-verification-message-container ${
                   message.includes('successfully') ? 'email-verification-message-success' : 

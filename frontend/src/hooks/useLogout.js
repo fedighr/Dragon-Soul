@@ -4,9 +4,13 @@ export const useLogout = () => {
   const navigate = useNavigate();
 
   const logout = () => {
-    localStorage.removeItem("access");
-    localStorage.removeItem("refresh");
-    navigate("/");
+    try {
+        localStorage.removeItem("access");
+        localStorage.removeItem("refresh");
+        navigate("/");
+    } catch (error) {
+        console.error("Logout failed:", error);
+    }
   };
 
   return logout;

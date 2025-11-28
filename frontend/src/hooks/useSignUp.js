@@ -1,4 +1,3 @@
-// hooks/useSignUp.js
 import { useState, useRef, useEffect } from 'react';
 import { EmailVerify, PhoneNumberVerify, RegisterUser/*, SendAuthEmail*/ } from '../services/SignUp.js'
 import { useNavigate } from "react-router-dom";
@@ -287,7 +286,7 @@ export const useSignUp = () => {
 
       setTimeout(() => {
       navigate("/verification", { state: { email: userData.email } });
-      }, 3000);
+      }, 2000);
 
     } catch (error) {
       console.error(error);

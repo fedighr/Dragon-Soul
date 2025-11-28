@@ -3,29 +3,32 @@ import "./Topbar.css";
 import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useLogout } from "../../../hooks/useLogout.js";
+import { isLoggedIn } from  "../../../utils/auth.jsx";
 
 
 const Topbar = () => {
   const logout = useLogout();
   const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const token = localStorage.getItem("access");
-    if (token) {
-      try {
-        setUser(jwtDecode(token));
-      } catch (error) {
-        console.error("Invalid token", error);
+    useEffect(() => {
+      const token = localStorage.getItem("access");
+      if (token && isLoggedIn()) {
+        try {
+          setUser(jwtDecode(token));
+        } catch (error) {
+          console.error("Invalid token", error);
+          setUser(null);
+        }
+      } else {
         setUser(null);
+
       }
-    } else {
-      setUser(null);
-    }
-  }, []);
+    }, []);
 
   const handleLogout = () => {
     logout();
     setUser(null);
+    window.location.reload();
   };
 
 

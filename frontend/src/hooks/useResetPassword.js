@@ -162,14 +162,22 @@ const checkEmailExists = async (email) => {
     if (!validateStep2()) return;
 
     setLoading(true);
-
+    let response
     try {
-      const response = await VerifyResetCode(email, code);
+      response = await VerifyResetCode(email, code);
       console.log(response.success);
       setMessage("Code verified successfully!");
       setStep(3);
-    } catch (error) {
-      setMessage(error.response?.data?.error || "Invalid verification code. Please try again.");
+    } catch (err) {
+      const status = err.response?.status;
+      if (status === 408) {
+        setMessage(err.response?.data?.error || "Your verification code has expired. We will send you a new one shortly.");
+      } else if (status) {
+        setMessage(err.response?.data?.error || "Invalid verification code. Please try again.");
+      } else {
+        console.log("Error object:", err);
+        setMessage(err.message || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -192,7 +200,7 @@ const checkEmailExists = async (email) => {
         navigate("/login", {
           state: { message: "Password reset successfully! You can now login with your new password." }
         });
-      }, 2000);
+      }, 1000);
     } catch (error) {
       setMessage(error.response?.data?.error || "Failed to reset password. Please try again.");
     } finally {

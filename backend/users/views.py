@@ -23,7 +23,6 @@ class AuthView(APIView):
                 existing_user = User.objects.filter(email=email).first()
                 if existing_user:
                     if existing_user.is_verified:
-                        print("error")
                         return Response({'success': False, 'message':'email already used'}, status=status.HTTP_400_BAD_REQUEST)
                     
                     else:

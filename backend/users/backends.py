@@ -1,4 +1,4 @@
-from users.models import User  # ⚡ C’est la bonne classe, pas la string
+from users.models import User
 from django.contrib.auth.backends import BaseBackend
 
 class EmailBackend(BaseBackend):

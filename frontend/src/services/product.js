@@ -1,30 +1,15 @@
+import api from "./api"
 
-import axios from "axios";
+export const AddProduct = async(name, price, color, size, image, quantity, user, product) =>{
 
-export const fetchProducts = async (filters, ordering, type) => {
-  try {
-    const response = await axios.get("http://127.0.0.1:8000/store/products/", {
-      params: {
-        filters: JSON.stringify(filters),
-        ordering: ordering,
-        type: type
-      },
-    });
-
-    if (response.data && response.data.data) {
-      return response.data.data;
+  try{
+      const response = await api.post("http://127.0.0.1:8000/order/orders/", {name, price, color, size, image, quantity, user, product});
+      return response.date;
+  }catch(error){
+        if (error.response) {
+      throw error.response.data;
     } else {
-      throw new Error("Invalid response format from server");
+      throw { error: "Network error" };
     }
-  } catch (error) {
-    console.error("Error fetching products:", error);
-
-    if (error.response) {
-      throw new Error(`Server error: ${error.response.status}`);
-    } else if (error.request) {
-      throw new Error("Network error: Unable to connect to server");
-    } else {
-      throw new Error("Failed to load products");
-    }
-  }
-};
+}
+}

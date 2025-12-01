@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect} from "react";
-import { fetchProducts } from "../services/product.js";
+import { fetchProducts } from "../services/store.js";
 
 export const useStorePage = () => {
   const [products, setProducts] = useState([]);

@@ -745,3 +745,172 @@
     grid-template-columns: 1fr;
   }
 }
+.nav-icon-btn .cart-loading-indicator {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff6b00;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(0.8);
+  }
+}
+
+/* Header cart loader */
+.header-cart-loader {
+  display: inline-flex;
+  margin-left: 10px;
+  align-items: center;
+}
+
+/* Mini loader for delete buttons */
+.mini-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.spinner-dot-small {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* Quantity loader small */
+.quantity-loader-small {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 20px;
+}
+
+/* Price loader small for header cart */
+.price-loader-small {
+  width: 40px;
+  height: 16px;
+}
+
+/* Button mini loader */
+.button-mini-loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.loader-dot-small {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* Cart loading skeleton */
+.cart-loading {
+  padding: 20px;
+}
+
+.cart-item-skeleton {
+  display: flex;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: white;
+  border-radius: 12px;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+
+.skeleton-image {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}
+
+.skeleton-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-line {
+  height: 12px;
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-line.short {
+  width: 40%;
+}
+
+.skeleton-line.medium {
+  width: 60%;
+}
+
+.skeleton-line.long {
+  width: 80%;
+}
+
+@keyframes skeletonPulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Item loading overlay for header cart */
+.item-loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  z-index: 1;
+}
+
+/* Disabled state for updating items in header cart */
+.cart-item.updating {
+  opacity: 0.8;
+}
+
+.cart-item.updating .item-controls button:disabled {
+  opacity: 0.5;
+}

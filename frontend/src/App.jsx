@@ -7,24 +7,27 @@ import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import Verification from "./pages/Auth/Verification.jsx";
 import Product from "./pages/Product/Product.jsx";
 import PublicRoute from "./utils/PublicRoute.jsx";
+import PrivateRoute from "./utils/PrivateRoute.jsx";
+import Cart from "./pages/Cart/Cart.jsx";
+import CartTest from "./CartTest.jsx"
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 function App() {
   return (
     <div>
-
-        <Router>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/Store" element={<Store />} />
-                <Route path="/SignUp" element={<PublicRoute> <SignUp /> </PublicRoute>} />
-                <Route path="/login" element={<PublicRoute> <Login /> </PublicRoute>} />
-                <Route path="/Product" element={<Product/>}/>
-                <Route path="/verification" element={<PublicRoute> <Verification /> </PublicRoute>} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-            </Routes>
-        </Router>
-
+      <Router>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/Store" element={<Store />} />
+          <Route path="/SignUp" element={<PublicRoute> <SignUp /> </PublicRoute>} />
+          <Route path="/login" element={<PublicRoute> <Login /> </PublicRoute>} />
+          <Route path="/Product" element={<Product/>}/>
+          <Route path="/cart" element={<PrivateRoute><Cart/> </PrivateRoute>}/>
+          <Route path="/test" element={<CartTest/>}/>
+          <Route path="/verification" element={<PublicRoute> <Verification /> </PublicRoute>} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+        </Routes>
+      </Router>
     </div>
   );
 }

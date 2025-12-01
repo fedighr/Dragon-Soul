@@ -145,7 +145,7 @@ const StorePage = () => {
                     id: product.id,
                     image: product.productcolor_set[0].image,
                     name: product.name,
-                    price: `dt${product.price}`,
+                    price: `${product.price}DT`,
                     isShowMore: false,
                     isEmpty: false
                   }}

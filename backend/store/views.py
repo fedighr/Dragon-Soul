@@ -60,6 +60,7 @@ class ProductListView(generics.ListAPIView):
             except json.JSONDecodeError:
                 query = Product.objects.none()
 
+        query = query.filter(productcolor__productcolorsize__stock__gt=0).distinct()
         return query
 
     def list(self, request, *args, **kwargs):

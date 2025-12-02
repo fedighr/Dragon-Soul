@@ -3,7 +3,7 @@ import api from "./api"
 export const getCartItems = async(id) => {
     try{
         const response = await api.get("order/orders/",{params: { user: id }});
-        return response.data;
+        return response.data.results;
     }catch(error){
         if (error.response) {
       throw error.response.data;

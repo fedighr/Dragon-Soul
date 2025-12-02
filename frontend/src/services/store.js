@@ -1,20 +1,30 @@
-
+import api from "./api";
 import axios from "axios";
 
-export const fetchProducts = async (filters, ordering, type) => {
+export const fetchProducts = async (filters, ordering, type, page) => {
   try {
     const response = await axios.get("http://127.0.0.1:8000/store/products/", {
       params: {
         filters: JSON.stringify(filters),
-        ordering: ordering,
-        type: type
+        ordering,
+        type,
+        page,
       },
+      validateStatus: (status) => status >= 200 && status < 500,
     });
+    console.log(response,status);
+    console.log(page);
+    console.log(response.data.results);
+    if (response.status === 404) {
+      return [];
+    }
 
-    if (response.data && response.data.data) {
-      return response.data.data;
+
+    if (response.data && response.data.results) {
+      return response.data.results;
     } else {
-      throw new Error("Invalid response format from server");
+      console.error("Invalid response format from server:", response.data);
+      return [];
     }
   } catch (error) {
     console.error("Error fetching products:", error);

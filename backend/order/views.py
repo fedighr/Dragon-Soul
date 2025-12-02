@@ -1,11 +1,15 @@
 from django.shortcuts import render
 from rest_framework.viewsets import ModelViewSet
 from .models import Order
+from rest_framework.pagination import PageNumberPagination
 from users.models import User
 from .serializers import OrderSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+
+class NoPagination(PageNumberPagination):
+    page_size = None
 
 class OrderViewSet(ModelViewSet):
     queryset = Order.objects.all()

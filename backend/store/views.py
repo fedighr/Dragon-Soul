@@ -2,6 +2,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import Product
 from .serializers import ProductSerializer
+from rest_framework.viewsets import ModelViewSet
 import json
 
 class ProductListView(generics.ListAPIView):
@@ -65,6 +66,10 @@ class ProductListView(generics.ListAPIView):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
         serializer = self.get_serializer(queryset, many=True)
         return Response({
             "success": True,
@@ -91,3 +96,7 @@ class ProductListView(generics.ListAPIView):
         ]
         code_to_name = {c["name"].lower(): c["value"] for c in availebel_colors}
         return [code_to_name.get(code.lower(), "Unknown") for code in colors]
+    
+class AddProduct(ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer    

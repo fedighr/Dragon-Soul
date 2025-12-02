@@ -128,7 +128,7 @@ const Header = ({ image }) => {
     }
   };
 
-  const displayedCartItems = cartItems.slice(0, 4);
+  const displayedCartItems = Array.isArray(cartItems) ? cartItems.slice(0, 4) : [];
 
   return (
     <header className="header">

@@ -1,5 +1,4 @@
-
-import { useState, useRef, useEffect} from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { fetchProducts } from "../services/store.js";
 
 export const useStorePage = () => {
@@ -11,26 +10,146 @@ export const useStorePage = () => {
   const [selectedSort, setSelectedSort] = useState("Name: A to Z");
   const [tabsBarVisible, setTabsBarVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [showNoProductsMessage, setShowNoProductsMessage] = useState(false);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
 
-  const [activeFilters, setActiveFilters] = useState({
+  const [localFilters, setLocalFilters] = useState({
     priceRange: [0, 1000],
     sizes: [],
-    colors: []
+    colors: [],
+    types: []
   });
 
-  const [localPriceRange, setLocalPriceRange] = useState([0, 1000]);
+  const [appliedFilters, setAppliedFilters] = useState({
+    priceRange: [0, 1000],
+    sizes: [],
+    colors: [],
+    types: []
+  });
 
   const sortRef = useRef(null);
   const filterRef = useRef(null);
+  const footerRef = useRef(null);
+  const productsGridRef = useRef(null);
 
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      setTabsBarVisible(currentScrollY < lastScrollY || currentScrollY < 100);
-      setLastScrollY(currentScrollY);
+    if (productsGridRef.current && !isInitialLoad && !isFetchingMore) {
+      const cards = productsGridRef.current.querySelectorAll('.product-card');
+      cards.forEach((card, index) => {
+        const isNew = index >= filteredProducts.length - 10; // Last page of products
+        if (isNew) {
+          card.style.animation = `fadeInUp 0.5s ease ${Math.min(index * 0.03, 0.5)}s forwards`;
+          card.style.opacity = '0';
+          card.style.transform = 'translateY(20px)';
+        }
+      });
+    }
+  }, [filteredProducts, isInitialLoad, isFetchingMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loading && !isFetchingMore && !isInitialLoad) {
+          loadMoreProducts();
+        }
+      },
+      { threshold: 0.1, rootMargin: '50px' }
+    );
+
+    const footerEl = footerRef.current;
+    if (footerEl) observer.observe(footerEl);
+
+    return () => {
+      if (footerEl) observer.unobserve(footerEl);
     };
+  }, [hasMore, loading, isFetchingMore, isInitialLoad]);
+
+  useEffect(() => {
+    loadInitialProducts();
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialLoad) {
+      setPage(1);
+      setHasMore(true);
+      loadProducts(1);
+    }
+  }, [appliedFilters, selectedSort, selectedCategory]);
+
+  const loadInitialProducts = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const products = await fetchProducts(appliedFilters, selectedSort, selectedCategory, 1);
+      if (products.length === 0) {
+        setShowNoProductsMessage(true);
+        setHasMore(false);
+      } else {
+        setFilteredProducts(products);
+        setShowNoProductsMessage(false);
+        setHasMore(products.length >= 10);
+      }
+      setIsInitialLoad(false);
+    } catch (err) {
+      setError(err.message || "Failed to load products. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadProducts = async (pageNum) => {
+    if (loading || isFetchingMore) return;
+    
+    if (pageNum === 1) {
+      setLoading(true);
+    } else {
+      setIsFetchingMore(true);
+    }
+    
+    setError(null);
+    try {
+      const products = await fetchProducts(appliedFilters, selectedSort, selectedCategory, pageNum);
+      
+      if (products.length === 0) {
+        setHasMore(false);
+        if (pageNum === 1) {
+          setShowNoProductsMessage(true);
+        }
+      } else {
+        if (pageNum === 1) {
+          setFilteredProducts(products);
+        } else {
+          setFilteredProducts(prev => [...prev, ...products]);
+        }
+        setHasMore(products.length >= 10);
+        setShowNoProductsMessage(false);
+      }
+    } catch (err) {
+      setError(err.message || "Failed to load products. Please try again.");
+    } finally {
+      setLoading(false);
+      setIsFetchingMore(false);
+    }
+  };
+
+  const loadMoreProducts = async () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    await loadProducts(nextPage);
+  };
+
+  const handleScroll = () => {
+    const currentScrollY = window.scrollY;
+    setTabsBarVisible(currentScrollY < lastScrollY || currentScrollY < 100);
+    setLastScrollY(currentScrollY);
+  };
+
+  useEffect(() => {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, [lastScrollY]);
@@ -47,58 +166,68 @@ export const useStorePage = () => {
   useEffect(() => { if (sortOpen) setFilterOpen(false); }, [sortOpen]);
   useEffect(() => { if (filterOpen) setSortOpen(false); }, [filterOpen]);
 
-  useEffect(() => {
-    const loadProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const products = await fetchProducts(activeFilters, selectedSort, selectedCategory);
-        setFilteredProducts(products);
-      } catch (err) {
-        setError("Failed to load products. Please try again later.");
-        console.error("Error loading products:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadProducts();
-  }, [activeFilters, selectedSort, selectedCategory]);
-
   const handleSortSelect = (option) => {
     setSelectedSort(option);
     setSortOpen(false);
   };
 
-  const handleSizeToggle = (size) => setActiveFilters(prev => ({
-    ...prev,
-    sizes: prev.sizes.includes(size) ? prev.sizes.filter(s => s !== size) : [...prev.sizes, size]
-  }));
+  const handleSizeToggle = (size) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      sizes: prev.sizes.includes(size) 
+        ? prev.sizes.filter(s => s !== size) 
+        : [...prev.sizes, size]
+    }));
+  };
 
-  const handleColorToggle = (color) => setActiveFilters(prev => ({
-    ...prev,
-    colors: prev.colors.includes(color) ? prev.colors.filter(c => c !== color) : [...prev.colors, color]
-  }));
+  const handleColorToggle = (color) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      colors: prev.colors.includes(color) 
+        ? prev.colors.filter(c => c !== color) 
+        : [...prev.colors, color]
+    }));
+  };
+
+  const handleTypeToggle = (type) => {
+    setLocalFilters(prev => ({
+      ...prev,
+      types: prev.types.includes(type) 
+        ? prev.types.filter(t => t !== type) 
+        : [...prev.types, type]
+    }));
+  };
 
   const handlePriceChange = (min, max) => {
-    const adjustedMin = Math.min(min, max);
-    const adjustedMax = Math.max(min, max);
-    setActiveFilters(prev => ({ ...prev, priceRange: [adjustedMin, adjustedMax] }));
-    setLocalPriceRange([adjustedMin, adjustedMax]);
+    const adjustedMin = Math.min(min, max, 1000);
+    const adjustedMax = Math.max(Math.min(max, 1000), adjustedMin);
+    setLocalFilters(prev => ({ 
+      ...prev, 
+      priceRange: [adjustedMin, adjustedMax] 
+    }));
   };
 
-  const handleLocalPriceChange = (min, max) => {
-    const adjustedMin = Math.min(min, max);
-    const adjustedMax = Math.max(min, max);
-    setLocalPriceRange([adjustedMin, adjustedMax]);
+  const applyFilters = () => {
+    setAppliedFilters(localFilters);
+    setPage(1);
+    setFilterOpen(false);
   };
 
-  const applyPriceFilter = () => {
-    setActiveFilters(prev => ({ ...prev, priceRange: localPriceRange }));
+  const cancelFilters = () => {
+    setLocalFilters(appliedFilters);
+    setFilterOpen(false);
   };
 
   const handleClearFilters = () => {
-    setActiveFilters({ priceRange: [0,1000], sizes: [], colors: [] });
-    setLocalPriceRange([0, 1000]);
+    const resetFilters = { 
+      priceRange: [0, 1000], 
+      sizes: [], 
+      colors: [], 
+      types: [] 
+    };
+    setLocalFilters(resetFilters);
+    setAppliedFilters(resetFilters);
+    setPage(1);
   };
 
   const handleCategorySelect = (category) => setSelectedCategory(category);
@@ -115,17 +244,24 @@ export const useStorePage = () => {
     selectedSort,
     handleSortSelect,
     tabsBarVisible,
-    activeFilters,
+    localFilters,
+    appliedFilters,
     handleSizeToggle,
     handleColorToggle,
+    handleTypeToggle,
     handlePriceChange,
-    handleLocalPriceChange,
-    applyPriceFilter,
+    applyFilters,
+    cancelFilters,
     handleClearFilters,
     sortRef,
     filterRef,
+    footerRef,
+    productsGridRef,
     loading,
     error,
-    localPriceRange
+    hasMore,
+    showNoProductsMessage,
+    isInitialLoad,
+    isFetchingMore
   };
 };

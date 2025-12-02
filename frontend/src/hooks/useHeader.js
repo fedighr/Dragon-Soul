@@ -33,7 +33,7 @@ export const useHeader = () => {
         
         const response = await getCartItems(userId);
         console.log(response);
-        setCartItems(response || []);
+        setCartItems(Array.isArray(response) ? response : []);
         setError(null);
       } catch (err) {
         console.error('Error fetching cart items:', err);
@@ -188,11 +188,15 @@ export const useHeader = () => {
   }, [userId]);
 
   const getTotalItems = useCallback(() => {
-    return cartItems.reduce((total, item) => total + item.quantity, 0);
+    return Array.isArray(cartItems)
+      ? cartItems.reduce((total, item) => total + item.quantity, 0)
+      : 0;
   }, [cartItems]);
 
   const getTotalPrice = useCallback(() => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return Array.isArray(cartItems)
+      ? cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
+      : 0;
   }, [cartItems]);
 
   const getItemLoadingState = useCallback((itemId, color, size, type = 'quantity') => {

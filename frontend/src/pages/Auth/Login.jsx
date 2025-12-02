@@ -23,7 +23,6 @@ const Login = () => {
     handleSubmit,
   } = useLogin();
 
-  // Determine message type for styling
   const getMessageType = () => {
     if (message.includes("Welcome back")) return "success";
     if (message.includes("Invalid") || message.includes("failed") || message.includes("error")) return "error";
@@ -117,7 +116,6 @@ const Login = () => {
                 {!loading && <i className="bi bi-arrow-right"></i>}
               </button>
 
-              {/* Enhanced Message Display */}
               {message && (
                 <div className={`message-container message-${getMessageType()} ${getMessageType() === 'error' ? 'backend-error' : ''}`}>
                   {getMessageType() === 'success' && (

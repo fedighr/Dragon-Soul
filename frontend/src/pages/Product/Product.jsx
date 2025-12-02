@@ -1,90 +1,100 @@
+// frontend/src/pages/Product/Product.jsx (REMPLACER complètement)
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useProduct } from '../../hooks/useProduct';
+import Header from '../../components/layout/Header/Header';
+import Footer from '../../components/layout/Footer/Footer';
+import ProductCard from '../../components/common/container/ProductCard';
+import BackToTopButton from '../../components/common/button/BackToTopButton';
+import LoadingSpinner from '../../components/common/loader/LoadingSpinner';
 import './Product.css';
-import Header from "../../components/layout/Header/Header.jsx";
-import Footer from "../../components/layout/Footer/Footer.jsx";
-import ProductCard from "../../components/common/container/ProductCard.jsx";
-import BackToTopButton from "../../components/common/button/BackToTopButton.jsx";
+
 const Product = () => {
-  const [selectedSize, setSelectedSize] = useState('S');
-  const [quantity, setQuantity] = useState(1);
-  const [selectedImage, setSelectedImage] = useState(0);
+  const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [isZoomed, setIsZoomed] = useState(false);
-
-  const product = {
-    id: 1,
-    title: "DRAGON FIRE HOODIE",
-    brand: "DRAGON SOUL",
-    price: 119.000,
-    currency: "TND",
-    description: "Premium hoodie with dragon design. Made from high-quality cotton for ultimate comfort and style. Perfect for everyday wear.",
-    features: [
-      "Premium Three-Thread Cotton",
-      "Oversized Comfort Fit",
-      "Padded Interior",
-      "Signature Dragon Embroidery",
-      "Adjustable Hood",
-      "Kangaroo Pocket"
-    ],
-    images: [
-      "/images/bestsells.jpg",
-      "/images/car1.jpg",
-      "/images/car2.jpg",
-      "/images/car3.jpg",
-    ],
-    sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-  };
-
-  const relatedProducts = [
-    {
-      id: 2,
-      title: "PHOENIX T-SHIRT",
-      price: 79.000,
-      image: "/images/car4.png",
-      hoverImage: "/images/car5.jpg",
-    },
-    {
-      id: 3,
-      title: "FIRE SWEATPANTS",
-      price: 99.000,
-      image: "/images/car5.jpg",
-      hoverImage: "/images/car6.jpg",
-    },
-    {
-      id: 4,
-      title: "DRAGON CAP",
-      price: 49.000,
-      image: "/images/car6.jpg",
-      hoverImage: "/images/car1.jpg",
-    }
-  ];
-
-  const handleQuantityChange = (change) => {
-    const newQuantity = quantity + change;
-    if (newQuantity >= 1 && newQuantity <= 10) {
-      setQuantity(newQuantity);
-    }
-  };
-
-  const handleQuantityInput = (e) => {
-    const value = parseInt(e.target.value);
-    if (!isNaN(value) && value >= 1 && value <= 10) {
-      setQuantity(value);
-    }
-  };
-
+  
+  const {
+    product,
+    relatedProducts,
+    loading,
+    error,
+    selectedColor,
+    selectedSize,
+    quantity,
+    selectedImage,
+    availableSizes,
+    setSelectedImage,
+    handleColorChange,
+    handleSizeChange,
+    handleQuantityChange,
+    handleQuantityInput,
+    reload,
+    maxQuantity,
+    totalStock,
+    allImages
+  } = useProduct();
+  
+  // Fonctions d'action
   const addToCart = () => {
-    alert(`Added ${quantity} ${selectedSize} ${product.title} to cart`);
+    if (!selectedSize || !selectedColor) {
+      alert('Veuillez sélectionner une couleur et une taille');
+      return;
+    }
+// Pour l'instant, on affiche juste une alerte
+    alert(`Ajouté au panier: ${quantity} x ${product.name} (${selectedColor.name}, ${selectedSize})`);
+    
+    // Ici tu pourras ajouter l'appel à ton API panier plus tard
   };
-
+  
   const buyNow = () => {
-    alert(`Buying ${quantity} ${selectedSize} ${product.title} now`);
+    addToCart();
+    navigate('/checkout');
   };
-
+  
+  const toggleWishlist = () => {
+    setIsWishlisted(!isWishlisted);
+    alert(isWishlisted ? 'Retiré des favoris' : 'Ajouté aux favoris');
+  };
+  
   const toggleZoom = () => {
     setIsZoomed(!isZoomed);
   };
-
+  
+  // Loading state
+  if (loading) {
+    return (
+      <div className="product-page-specific">
+        <Header />
+        <div className="loading-container">
+          <LoadingSpinner />
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
+  // Error state
+  if (error || !product) {
+    return (
+      <div className="product-page-specific">
+        <Header />
+        <div className="error-container">
+          <div className="error-content">
+            <i className="bi bi-exclamation-triangle error-icon"></i>
+            <h3>Produit non disponible</h3>
+            <p>{error || "Le produit que vous recherchez n'existe pas."}</p>
+            <button className="retry-btn" onClick={reload}>
+              <i className="bi bi-arrow-clockwise"></i>
+              Réessayer
+            </button>
+          </div>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
+  
   return (
     <div className="product-page-specific">
       <Header />
@@ -107,10 +117,12 @@ const Product = () => {
           <div className="product-page-width">
             <div className="product-layout-grid">
 
-              {/* Image Gallery */}
+              {/* Image Gallery - Dynamique */}
               <div className="product-gallery-specific">
                 <div className="gallery-header">
-                  <div className="gallery-badge">LIMITED EDITION</div>
+                  {totalStock <= 10 && totalStock > 0 && (
+                    <div className="gallery-badge warning">STOCK LIMITÉ</div>
+                  )}
                   <button
                     className={`zoom-toggle ${isZoomed ? 'active' : ''}`}
                     onClick={toggleZoom}
@@ -124,46 +136,52 @@ const Product = () => {
                   className={`product-main-image ${isZoomed ? 'zoomed' : ''}`}
                   onClick={isZoomed ? toggleZoom : undefined}
                 >
-                  <img
-                    src={product.images[selectedImage]}
-                    alt={product.title}
-                    className="product-img-display"
-                  />
+                  {allImages.length > 0 ? (
+                    <img
+                      src={allImages[selectedImage]?.src}
+                      alt={allImages[selectedImage]?.alt || product.name}
+                      className="product-img-display"
+                    />
+                  ) : (
+                    <div className="no-image">Pas d'image disponible</div>
+                  )}
                   {isZoomed && (
                     <div className="zoom-overlay">
-                      <div className="zoom-guide">Click to zoom out</div>
+                      <div className="zoom-guide">Cliquez pour zoomer</div>
                     </div>
                   )}
                 </div>
 
-                <div className="product-thumbnails-specific">
-                  <div className="product-thumbnails-scroll">
-                    {product.images.map((image, index) => (
-                      <div
-                        key={index}
-                        className={`product-thumb-item ${selectedImage === index ? 'active' : ''}`}
-                        onClick={() => setSelectedImage(index)}
-                      >
-                        <img src={image} alt={`View ${index + 1}`} />
-                        <div className="thumbnail-overlay">
-                          <i className="bi bi-eye-fill"></i>
+                {allImages.length > 1 && (
+                  <div className="product-thumbnails-specific">
+                    <div className="product-thumbnails-scroll">
+                      {allImages.map((image, index) => (
+                        <div
+                          key={index}
+                          className={`product-thumb-item ${selectedImage === index ? 'active' : ''}`}
+                          onClick={() => setSelectedImage(index)}
+                        >
+                          <img src={image.src} alt={`Vue ${index + 1}`} />
+                          <div className="thumbnail-overlay">
+                            <i className="bi bi-eye-fill"></i>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Product Info */}
+              {/* Product Info - Dynamique */}
               <div className="product-info-specific">
                 <div className="product-details-container">
                   <div className="product-brand-specific">
                     <i className="bi bi-fire"></i>
-                    {product.brand}
+                    DRAGON SOUL
                   </div>
 
                   <div className="product-title-specific">
-                    <h1>{product.title}</h1>
+                    <h1>{product.name}</h1>
                     <div className="title-underline">
                       <div className="underline-fire"></div>
                     </div>
@@ -171,37 +189,78 @@ const Product = () => {
 
                   <div className="product-price-container">
                     <div className="price--epic">
-                      <span className="price-currency">{product.currency}</span>
-                      <span className="price-item">{product.price.toFixed(3)}</span>
+                      <span className="price-currency">TND</span>
+                      <span className="price-item">{parseFloat(product.price).toFixed(3)}</span>
                     </div>
-                    <div className="price-badge">LIMITED STOCK</div>
+                    {totalStock <= 10 && (
+                      <div className="price-badge">STOCK LIMITÉ</div>
+                    )}
                   </div>
 
                   <div className="product-description-specific">
-                    <p>{product.description}</p>
+                    <p>{product.description || "Produit premium de haute qualité."}</p>
                   </div>
 
-                  {/* Features Preview */}
-                  <div className="product-features-preview">
-                    <h4>Premium Features:</h4>
-                    <ul>
-                      {product.features.slice(0, 3).map((feature, index) => (
-                        <li key={index}>
-                          <i className="bi bi-check-circle-fill"></i>
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {/* Color Selection - Dynamique */}
+                  {product.productcolor_set && product.productcolor_set.length > 0 && (
+                    <div className="product-color-selector">
+                      <div className="product-color-header">
+                        <span className="product-color-label">CHOISIR LA COULEUR</span>
+                      </div>
+                      <div className="product-color-options">
+                        {product.productcolor_set.map((color) => {
+                          const isAvailable = color.productcolorsize_set?.some(
+                            size => size.stock > 0
+                          );
+                          
+                          return (
+                            <div key={color.id} className="product-color-option">
+                              <input
+                                type="radio"
+                                id={`color-${color.id}`}
+                                name="product-color"
+                                value={color.id}
+                                checked={selectedColor?.id === color.id}
+                                onChange={() => handleColorChange({
+                                  id: color.id,
+                                  name: color.color,
+                                  image: color.image
+                                })}
+                                disabled={!isAvailable}
+                              />
+                              <label 
+                                htmlFor={`color-${color.id}`} 
+                                className={`product-color-btn ${!isAvailable ? 'disabled' : ''}`}
+                                title={`${color.color} ${!isAvailable ? '(Épuisé)' : ''}`}
+                              >
+                                <div 
+                                  className="color-swatch"
+                                  style={{ 
+                                    backgroundColor: getColorHex(color.color),
+                                    borderColor: selectedColor?.id === color.id ? '#ff6b35' : '#e0e0e0'
+                                  }}
+                                >
+                                  {selectedColor?.id === color.id && (
+                                    <i className="bi bi-check"></i>
+                                  )}
+                                </div>
+                                <span className="color-name">{color.color}</span>
+                              </label>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Size Selection */}
+                  {/* Size Selection - Dynamique */}
                   <div className="product-size-selector">
                     <div className="product-size-header">
-                      <span className="product-size-label">SELECT SIZE</span>
-                      <a href="#" className="product-size-guide">Size Guide</a>
+                      <span className="product-size-label">CHOISIR LA TAILLE</span>
+                      <a href="#" className="product-size-guide">Guide des tailles</a>
                     </div>
                     <div className="product-size-options">
-                      {product.sizes.map((size) => (
+                      {availableSizes.map((size) => (
                         <div key={size} className="product-size-option">
                           <input
                             type="radio"
@@ -209,19 +268,39 @@ const Product = () => {
                             name="product-size"
                             value={size}
                             checked={selectedSize === size}
-                            onChange={(e) => setSelectedSize(e.target.value)}
+                            onChange={() => handleSizeChange(size)}
                           />
                           <label htmlFor={`product-size-${size}`} className="product-size-btn">
                             {size}
                           </label>
                         </div>
                       ))}
+                      {availableSizes.length === 0 && selectedColor && (
+                        <div className="no-sizes">
+                          Aucune taille disponible pour cette couleur
+                        </div>
+                      )}
                     </div>
                   </div>
 
+                  {/* Stock Indicator */}
+                  {totalStock <= 10 && totalStock > 0 && (
+                    <div className="product-stock-indicator">
+                      <div className="stock-label">
+                        Il ne reste que {totalStock} articles en stock !
+                      </div>
+                      <div className="stock-bar">
+                        <div 
+                          className="stock-fill" 
+                          style={{ width: `${(totalStock / 50) * 100}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Quantity Selector */}
                   <div className="product-quantity-specific">
-                    <label className="product-quantity-label">QUANTITY</label>
+                    <label className="product-quantity-label">QUANTITÉ</label>
                     <div className="product-quantity-controls">
                       <button
                         type="button"
@@ -237,8 +316,8 @@ const Product = () => {
                         className="product-qty-input"
                         value={quantity}
                         min="1"
-                        max="10"
-                        onChange={handleQuantityInput}
+                        max={maxQuantity}
+                        onChange={(e) => handleQuantityInput(e.target.value)}
                         onFocus={(e) => e.target.select()}
                       />
 
@@ -246,12 +325,12 @@ const Product = () => {
                         type="button"
                         className="product-qty-btn"
                         onClick={() => handleQuantityChange(1)}
-                        disabled={quantity >= 10}
+                        disabled={quantity >= maxQuantity}
                       >
                         <i className="bi bi-plus"></i>
                       </button>
                     </div>
-                    <div className="quantity-hint">Max 10 per customer</div>
+                    <div className="quantity-hint">Maximum {maxQuantity} par client</div>
                   </div>
 
                   {/* Action Buttons */}
@@ -259,23 +338,25 @@ const Product = () => {
                     <button
                       className="product-add-cart dragon-btn"
                       onClick={addToCart}
+                      disabled={!selectedSize || totalStock === 0}
                     >
                       <i className="bi bi-cart-plus"></i>
-                      ADD TO CART
+                      {totalStock === 0 ? 'RUPTURE DE STOCK' : 'AJOUTER AU PANIER'}
                     </button>
 
                     <button
                       className="product-buy-now dragon-btn"
                       onClick={buyNow}
+                      disabled={!selectedSize || totalStock === 0}
                     >
                       <i className="bi bi-lightning-fill"></i>
-                      BUY NOW
+                      ACHETER MAINTENANT
                     </button>
 
                     <button
                       className={`product-wishlist-btn ${isWishlisted ? 'active' : ''}`}
-                      onClick={() => setIsWishlisted(!isWishlisted)}
-                      title={isWishlisted ? "Remove from Wishlist" : "Add to Wishlist"}
+                      onClick={toggleWishlist}
+                      title={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
                     >
                       <i className={`bi bi-${isWishlisted ? 'heart-fill' : 'heart'}`}></i>
                     </button>
@@ -285,15 +366,15 @@ const Product = () => {
                   <div className="product-trust-badges">
                     <div className="product-trust-item">
                       <i className="bi bi-truck"></i>
-                      <span>Free Shipping</span>
+                      <span>Livraison gratuite</span>
                     </div>
                     <div className="product-trust-item">
                       <i className="bi bi-shield-check"></i>
-                      <span>2-Year Warranty</span>
+                      <span>Garantie 2 ans</span>
                     </div>
                     <div className="product-trust-item">
                       <i className="bi bi-arrow-repeat"></i>
-                      <span>30-Day Returns</span>
+                      <span>Retours 30 jours</span>
                     </div>
                   </div>
                 </div>
@@ -302,42 +383,23 @@ const Product = () => {
           </div>
         </section>
 
-        {/* Features Section */}
-        <section className="product-features-specific">
-          <div className="product-page-width">
-            <div className="product-features-header">
-              <h2>PREMIUM FEATURES</h2>
-              <p>What makes Dragon Soul special</p>
-            </div>
-            <div className="product-features-grid">
-              {product.features.map((feature, index) => (
-                <div key={index} className="product-feature-card">
-                  <div className="product-feature-icon">
-                    <i className={`bi bi-${getFeatureIcon(index)}`}></i>
-                  </div>
-                  <h4>{feature}</h4>
-                  <p>{getFeatureDescription(index)}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
+        {/* Related Products - Dynamique */}
+        {relatedProducts.length > 0 && (
+          <section className="product-related-specific">
+            <div className="product-page-width">
+              <div className="product-related-header">
+                <h2>VOUS AIMEREZ AUSSI</h2>
+                <p>Complétez votre collection Dragon Soul</p>
+              </div>
 
-        {/* Related Products */}
-        <section className="product-related-specific">
-          <div className="product-page-width">
-            <div className="product-related-header">
-              <h2>YOU MAY ALSO LIKE</h2>
-              <p>Complete your Dragon Soul collection</p>
+              <div className="product-related-grid">
+                {relatedProducts.map((relatedProduct) => (
+                  <ProductCard key={relatedProduct.id} product={relatedProduct} />
+                ))}
+              </div>
             </div>
-
-            <div className="product-related-grid">
-              {relatedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          </div>
-        </section>
+          </section>
+        )}
       </div>
       <BackToTopButton />
       <Footer />
@@ -345,22 +407,17 @@ const Product = () => {
   );
 };
 
-// Helper functions
-const getFeatureIcon = (index) => {
-  const icons = ['gem', 'thermometer-sun', 'shield-check', 'award', 'person-check', 'bag-check'];
-  return icons[index] || 'star-fill';
-};
-
-const getFeatureDescription = (index) => {
-  const descriptions = [
-    "Premium quality materials that last through every adventure",
-    "Perfect for all weather conditions with optimal temperature control",
-    "Dragon Soul quality guarantee with reinforced stitching",
-    "Exclusive design featuring our signature dragon embroidery",
-    "Designed for comfort with an oversized urban fit",
-    "Practical kangaroo pocket for your essentials"
-  ];
-  return descriptions[index] || "Enhanced Dragon Soul feature";
+// Helper function for color hex codes
+const getColorHex = (colorName) => {
+  const colorMap = {
+    'Red': '#ff4444',
+    'Blue': '#4444ff', 
+    'White': '#ffffff',
+    'Black': '#000000',
+    'white': '#ffffff',
+    'black': '#000000'
+  };
+  return colorMap[colorName] || '#cccccc';
 };
 
 export default Product;

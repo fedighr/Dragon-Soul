@@ -14,8 +14,8 @@ class ProductColor(models.Model):
     class Color(models.TextChoices):
         Red = 'Red', 'Red'
         Blue = 'Blue', 'Blue'
-        White = 'white', 'white'
-        Black = 'black', 'black'   
+        White = 'White', 'White'
+        Black = 'Black', 'Black'   
 
     product_id = models.ForeignKey(Product, on_delete=models.CASCADE)    
     color = models.CharField(max_length=30, choices=Color.choices, default=Color.White)

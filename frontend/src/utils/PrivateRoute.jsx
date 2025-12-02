@@ -1,4 +1,4 @@
-/*import { Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { isLoggedIn } from "./auth";
 
 const PublicRoute = ({ children }) => {
@@ -6,4 +6,3 @@ const PublicRoute = ({ children }) => {
 };
 
 export default PublicRoute;
-*/

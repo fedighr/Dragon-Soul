@@ -3,7 +3,7 @@ import secrets
 from django.utils import timezone   
 from datetime import timedelta
 class OTPService:
-    EXPIRATION_SECONDS = 300
+    EXPIRATION_SECONDS = 20
 
     @staticmethod
     def generate_code():

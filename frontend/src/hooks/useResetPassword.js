@@ -59,7 +59,6 @@ const checkEmailExists = async (email) => {
       } else if (!/\S+@\S+\.\S+/.test(email)) {
         newErrors.email = "Email format is invalid";
       } else {
-        // Check email existence
         const exists = await checkEmailExists(email);
         if (!exists) {
           newErrors.email = "This email is not registered in our system";
@@ -120,7 +119,7 @@ const checkEmailExists = async (email) => {
 
   const startResendCooldown = () => {
     setCanResend(false);
-    setCountdown(30); // 30 seconds cooldown
+    setCountdown(30);
   };
 
   const handleSendCode = async (e) => {

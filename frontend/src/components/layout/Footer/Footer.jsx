@@ -1,9 +1,10 @@
 import React from "react";
 import "./Footer.css";
+import { forwardRef } from "react";
 
-const Footer = () => {
+const Footer = forwardRef((props, ref) => {
   return (
-    <>
+    <footer id="footer-load-trigger" ref={ref}>
       <div className="footer-container">
         <div className="subscription-section">
           <div className="container">
@@ -80,8 +81,8 @@ const Footer = () => {
           </div>
         </div>
       </div>
-    </>
+    </footer>
   );
-};
+});
 
 export default Footer;

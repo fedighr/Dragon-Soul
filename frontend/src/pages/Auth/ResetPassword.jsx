@@ -34,7 +34,6 @@ const ResetPassword = () => {
     handleResetPassword,
   } = useResetPassword();
 
-  // Determine message type for styling
   const getMessageType = () => {
     if (message.includes("successfully")) return "success";
     if (message.includes("Invalid") || message.includes("failed") || message.includes("error") || message.includes("not found")) return "error";
@@ -59,7 +58,7 @@ const ResetPassword = () => {
               </p>
             </div>
 
-            {/* Step 1: Enter Email */}
+
             {step === 1 && (
               <form onSubmit={handleSendCode} className="reset-password-form" noValidate>
                 <div className={`form-step ${step === 1 ? 'active' : ''}`}>
@@ -99,7 +98,7 @@ const ResetPassword = () => {
                   <button
                     type="submit"
                     className={`reset-continue-btn ${loading ? 'loading' : ''}`}
-                    disabled={loading || verifyingEmail || errors.email}
+                    disabled={loading  || errors.email}
                   >
                     {loading ? "Sending Code..." : "Continue"}
                     {!loading && <i className="bi bi-arrow-right"></i>}
@@ -108,7 +107,6 @@ const ResetPassword = () => {
               </form>
             )}
 
-            {/* Step 2: Verification Code */}
             {step === 2 && (
               <form onSubmit={handleVerifyCode} className="reset-password-form" noValidate>
                 <div className={`form-step ${step === 2 ? 'active' : ''}`}>
@@ -163,7 +161,6 @@ const ResetPassword = () => {
               </form>
             )}
 
-            {/* Step 3: New Password */}
             {step === 3 && (
               <form onSubmit={handleResetPassword} className="reset-password-form" noValidate>
                 <div className={`form-step ${step === 3 ? 'active' : ''}`}>
@@ -241,7 +238,6 @@ const ResetPassword = () => {
               </form>
             )}
 
-            {/* Message Display */}
             {message && (
               <div className={`message-container message-${getMessageType()} ${getMessageType() === 'error' ? 'backend-error' : ''}`}>
                 {getMessageType() === 'success' && (

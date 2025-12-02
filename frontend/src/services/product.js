@@ -1,15 +1,15 @@
+import api from "./api"
 
-import api from "./api.js";
-export const fetchProducts = async (filters, sort, category) => {
-  console.log("Sending to backend:", { filters, sort, category });
+export const AddProduct = async(name, price, color, size, image, quantity, user, product) =>{
 
   try{
-      const response = await api.get("/store/products/",{});
-      console.log(response);
-      return response.data;
-  }catch(err){
-      console.log(err);
-      return [];
-  }
-};
-
+      const response = await api.post("http://127.0.0.1:8000/order/orders/", {name, price, color, size, image, quantity, user, product});
+      return response.date;
+  }catch(error){
+        if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { error: "Network error" };
+    }
+}
+}

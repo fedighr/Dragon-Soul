@@ -29,7 +29,6 @@ export const removeCartItem = async (id, user_id) =>{
 };
 
 export const updateCartItem = async(id, quantity, user_id) =>{
-    console.log(quantity, id, user_id)
     try{
         await api.patch(`order/orders/${id}/`,{quantity},{params : {user : user_id }});
 

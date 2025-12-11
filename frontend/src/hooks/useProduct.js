@@ -1,7 +1,7 @@
 // frontend/src/hooks/useProduct.js (CRÉER ce fichier)
 import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { productAPI } from '../services/productApi';
+import { getProduct } from '../services/product';
 
 export const useProduct = () => {
   const { id } = useParams();
@@ -9,7 +9,6 @@ export const useProduct = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-
   // États pour la sélection
   const [selectedColor, setSelectedColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState('');
@@ -24,11 +23,12 @@ export const useProduct = () => {
       setError(null);
 
       // 1. Charger le produit
-      const productData = await productAPI.getById(id);
-      setProduct(productData);
+      const productData = await getProduct(id);
+      setProduct(productData[0]);
 
       // 2. Définir la première couleur par défaut
       if (productData.productcolor_set && productData.productcolor_set.length > 0) {
+        
         const firstColor = productData.productcolor_set[0];
         setSelectedColor({
           id: firstColor.id,
@@ -37,9 +37,6 @@ export const useProduct = () => {
         });
       }
 
-      // 3. Charger des produits liés (simplifié)
-      const related = await productAPI.getRelated();
-      setRelatedProducts(related.filter(p => p.id !== parseInt(id)));
 
     } catch (err) {
       setError('Produit non trouvé ou erreur de chargement');

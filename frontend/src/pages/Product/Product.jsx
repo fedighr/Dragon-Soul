@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProduct } from '../../hooks/useProduct';
-import Header from '../../components/layout/Header/Header';
 import Footer from '../../components/layout/Footer/Footer';
 import ProductCard from '../../components/common/container/ProductCard';
 import BackToTopButton from '../../components/common/button/BackToTopButton';
@@ -41,10 +40,7 @@ const Product = () => {
       alert('Veuillez sélectionner une couleur et une taille');
       return;
     }
-// Pour l'instant, on affiche juste une alerte
     alert(`Ajouté au panier: ${quantity} x ${product.name} (${selectedColor.name}, ${selectedSize})`);
-    
-    // Ici tu pourras ajouter l'appel à ton API panier plus tard
   };
   
   const buyNow = () => {
@@ -64,9 +60,8 @@ const Product = () => {
   // Loading state
   if (loading) {
     return (
-      <div className="product-page-specific">
-        <Header />
-        <div className="loading-container">
+      <div className="dsp-product-page">
+        <div className="dsp-loading-container">
           <LoadingSpinner />
         </div>
         <Footer />
@@ -77,14 +72,13 @@ const Product = () => {
   // Error state
   if (error || !product) {
     return (
-      <div className="product-page-specific">
-        <Header />
-        <div className="error-container">
-          <div className="error-content">
-            <i className="bi bi-exclamation-triangle error-icon"></i>
+      <div className="dsp-product-page">
+        <div className="dsp-error-container">
+          <div className="dsp-error-content">
+            <i className="bi bi-exclamation-triangle dsp-error-icon"></i>
             <h3>Produit non disponible</h3>
             <p>{error || "Le produit que vous recherchez n'existe pas."}</p>
-            <button className="retry-btn" onClick={reload}>
+            <button className="dsp-retry-btn" onClick={reload}>
               <i className="bi bi-arrow-clockwise"></i>
               Réessayer
             </button>
@@ -96,35 +90,34 @@ const Product = () => {
   }
   
   return (
-    <div className="product-page-specific">
-      <Header />
+    <div className="dsp-product-page">  
 
       {/* Hero Section */}
-      <div className="product-hero-specific">
-        <div className="hero-background">
-          <div className="fire-effect"></div>
-          <div className="smoke-effect"></div>
+      <div className="dsp-product-hero">
+        <div className="dsp-hero-background">
+          <div className="dsp-fire-effect"></div>
+          <div className="dsp-smoke-effect"></div>
         </div>
-        <div className="product-page-width">
-          <h1 className="hero-title">DRAGON SOUL COLLECTION</h1>
-          <p className="hero-subtitle">Limited Edition Premium Apparel</p>
+        <div className="dsp-page-width">
+          <h1 className="dsp-hero-title">DRAGON SOUL COLLECTION</h1>
+          <p className="dsp-hero-subtitle">Limited Edition Premium Apparel</p>
         </div>
       </div>
 
-      <div className="product-main-specific">
+      <div className="dsp-product-main">
         {/* Main Product Section */}
-        <section className="product-section-padding">
-          <div className="product-page-width">
-            <div className="product-layout-grid">
+        <section className="dsp-section-padding">
+          <div className="dsp-page-width">
+            <div className="dsp-layout-grid">
 
               {/* Image Gallery - Dynamique */}
-              <div className="product-gallery-specific">
-                <div className="gallery-header">
+              <div className="dsp-product-gallery">
+                <div className="dsp-gallery-header">
                   {totalStock <= 10 && totalStock > 0 && (
-                    <div className="gallery-badge warning">STOCK LIMITÉ</div>
+                    <div className="dsp-gallery-badge dsp-warning">STOCK LIMITÉ</div>
                   )}
                   <button
-                    className={`zoom-toggle ${isZoomed ? 'active' : ''}`}
+                    className={`dsp-zoom-toggle ${isZoomed ? 'dsp-active' : ''}`}
                     onClick={toggleZoom}
                     title={isZoomed ? "Zoom Out" : "Zoom In"}
                   >
@@ -133,36 +126,36 @@ const Product = () => {
                 </div>
 
                 <div
-                  className={`product-main-image ${isZoomed ? 'zoomed' : ''}`}
+                  className={`dsp-main-image ${isZoomed ? 'dsp-zoomed' : ''}`}
                   onClick={isZoomed ? toggleZoom : undefined}
                 >
                   {allImages.length > 0 ? (
                     <img
                       src={allImages[selectedImage]?.src}
                       alt={allImages[selectedImage]?.alt || product.name}
-                      className="product-img-display"
+                      className="dsp-img-display"
                     />
                   ) : (
-                    <div className="no-image">Pas d'image disponible</div>
+                    <div className="dsp-no-image">Pas d'image disponible</div>
                   )}
                   {isZoomed && (
-                    <div className="zoom-overlay">
-                      <div className="zoom-guide">Cliquez pour zoomer</div>
+                    <div className="dsp-zoom-overlay">
+                      <div className="dsp-zoom-guide">Cliquez pour zoomer</div>
                     </div>
                   )}
                 </div>
 
                 {allImages.length > 1 && (
-                  <div className="product-thumbnails-specific">
-                    <div className="product-thumbnails-scroll">
+                  <div className="dsp-thumbnails-container">
+                    <div className="dsp-thumbnails-scroll">
                       {allImages.map((image, index) => (
                         <div
                           key={index}
-                          className={`product-thumb-item ${selectedImage === index ? 'active' : ''}`}
+                          className={`dsp-thumb-item ${selectedImage === index ? 'dsp-active' : ''}`}
                           onClick={() => setSelectedImage(index)}
                         >
                           <img src={image.src} alt={`Vue ${index + 1}`} />
-                          <div className="thumbnail-overlay">
+                          <div className="dsp-thumbnail-overlay">
                             <i className="bi bi-eye-fill"></i>
                           </div>
                         </div>
@@ -173,48 +166,48 @@ const Product = () => {
               </div>
 
               {/* Product Info - Dynamique */}
-              <div className="product-info-specific">
-                <div className="product-details-container">
-                  <div className="product-brand-specific">
+              <div className="dsp-product-info">
+                <div className="dsp-details-container">
+                  <div className="dsp-product-brand">
                     <i className="bi bi-fire"></i>
                     DRAGON SOUL
                   </div>
 
-                  <div className="product-title-specific">
+                  <div className="dsp-product-title">
                     <h1>{product.name}</h1>
-                    <div className="title-underline">
-                      <div className="underline-fire"></div>
+                    <div className="dsp-title-underline">
+                      <div className="dsp-underline-fire"></div>
                     </div>
                   </div>
 
-                  <div className="product-price-container">
-                    <div className="price--epic">
-                      <span className="price-currency">TND</span>
-                      <span className="price-item">{parseFloat(product.price).toFixed(3)}</span>
+                  <div className="dsp-price-container">
+                    <div className="dsp-price--epic">
+                      <span className="dsp-price-currency">TND</span>
+                      <span className="dsp-price-item">{parseFloat(product.price).toFixed(3)}</span>
                     </div>
                     {totalStock <= 10 && (
-                      <div className="price-badge">STOCK LIMITÉ</div>
+                      <div className="dsp-price-badge">STOCK LIMITÉ</div>
                     )}
                   </div>
 
-                  <div className="product-description-specific">
+                  <div className="dsp-product-description">
                     <p>{product.description || "Produit premium de haute qualité."}</p>
                   </div>
 
                   {/* Color Selection - Dynamique */}
                   {product.productcolor_set && product.productcolor_set.length > 0 && (
-                    <div className="product-color-selector">
-                      <div className="product-color-header">
-                        <span className="product-color-label">CHOISIR LA COULEUR</span>
+                    <div className="dsp-color-selector">
+                      <div className="dsp-color-header">
+                        <span className="dsp-color-label">CHOISIR LA COULEUR</span>
                       </div>
-                      <div className="product-color-options">
+                      <div className="dsp-color-options">
                         {product.productcolor_set.map((color) => {
                           const isAvailable = color.productcolorsize_set?.some(
                             size => size.stock > 0
                           );
                           
                           return (
-                            <div key={color.id} className="product-color-option">
+                            <div key={color.id} className="dsp-color-option">
                               <input
                                 type="radio"
                                 id={`color-${color.id}`}
@@ -230,11 +223,11 @@ const Product = () => {
                               />
                               <label 
                                 htmlFor={`color-${color.id}`} 
-                                className={`product-color-btn ${!isAvailable ? 'disabled' : ''}`}
+                                className={`dsp-color-btn ${!isAvailable ? 'dsp-disabled' : ''}`}
                                 title={`${color.color} ${!isAvailable ? '(Épuisé)' : ''}`}
                               >
                                 <div 
-                                  className="color-swatch"
+                                  className="dsp-color-swatch"
                                   style={{ 
                                     backgroundColor: getColorHex(color.color),
                                     borderColor: selectedColor?.id === color.id ? '#ff6b35' : '#e0e0e0'
@@ -244,7 +237,7 @@ const Product = () => {
                                     <i className="bi bi-check"></i>
                                   )}
                                 </div>
-                                <span className="color-name">{color.color}</span>
+                                <span className="dsp-color-name">{color.color}</span>
                               </label>
                             </div>
                           );
@@ -254,14 +247,14 @@ const Product = () => {
                   )}
 
                   {/* Size Selection - Dynamique */}
-                  <div className="product-size-selector">
-                    <div className="product-size-header">
-                      <span className="product-size-label">CHOISIR LA TAILLE</span>
-                      <a href="#" className="product-size-guide">Guide des tailles</a>
+                  <div className="dsp-size-selector">
+                    <div className="dsp-size-header">
+                      <span className="dsp-size-label">CHOISIR LA TAILLE</span>
+                      <a href="#" className="dsp-size-guide">Guide des tailles</a>
                     </div>
-                    <div className="product-size-options">
+                    <div className="dsp-size-options">
                       {availableSizes.map((size) => (
-                        <div key={size} className="product-size-option">
+                        <div key={size} className="dsp-size-option">
                           <input
                             type="radio"
                             id={`product-size-${size}`}
@@ -270,13 +263,13 @@ const Product = () => {
                             checked={selectedSize === size}
                             onChange={() => handleSizeChange(size)}
                           />
-                          <label htmlFor={`product-size-${size}`} className="product-size-btn">
+                          <label htmlFor={`product-size-${size}`} className="dsp-size-btn">
                             {size}
                           </label>
                         </div>
                       ))}
                       {availableSizes.length === 0 && selectedColor && (
-                        <div className="no-sizes">
+                        <div className="dsp-no-sizes">
                           Aucune taille disponible pour cette couleur
                         </div>
                       )}
@@ -285,13 +278,13 @@ const Product = () => {
 
                   {/* Stock Indicator */}
                   {totalStock <= 10 && totalStock > 0 && (
-                    <div className="product-stock-indicator">
-                      <div className="stock-label">
+                    <div className="dsp-stock-indicator">
+                      <div className="dsp-stock-label">
                         Il ne reste que {totalStock} articles en stock !
                       </div>
-                      <div className="stock-bar">
+                      <div className="dsp-stock-bar">
                         <div 
-                          className="stock-fill" 
+                          className="dsp-stock-fill" 
                           style={{ width: `${(totalStock / 50) * 100}%` }}
                         ></div>
                       </div>
@@ -299,12 +292,12 @@ const Product = () => {
                   )}
 
                   {/* Quantity Selector */}
-                  <div className="product-quantity-specific">
-                    <label className="product-quantity-label">QUANTITÉ</label>
-                    <div className="product-quantity-controls">
+                  <div className="dsp-quantity-selector">
+                    <label className="dsp-quantity-label">QUANTITÉ</label>
+                    <div className="dsp-quantity-controls">
                       <button
                         type="button"
-                        className="product-qty-btn"
+                        className="dsp-qty-btn"
                         onClick={() => handleQuantityChange(-1)}
                         disabled={quantity <= 1}
                       >
@@ -313,7 +306,7 @@ const Product = () => {
 
                       <input
                         type="number"
-                        className="product-qty-input"
+                        className="dsp-qty-input"
                         value={quantity}
                         min="1"
                         max={maxQuantity}
@@ -323,20 +316,20 @@ const Product = () => {
 
                       <button
                         type="button"
-                        className="product-qty-btn"
+                        className="dsp-qty-btn"
                         onClick={() => handleQuantityChange(1)}
                         disabled={quantity >= maxQuantity}
                       >
                         <i className="bi bi-plus"></i>
                       </button>
                     </div>
-                    <div className="quantity-hint">Maximum {maxQuantity} par client</div>
+                    <div className="dsp-quantity-hint">Maximum {maxQuantity} par client</div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="product-actions-specific">
+                  <div className="dsp-action-buttons">
                     <button
-                      className="product-add-cart dragon-btn"
+                      className="dsp-add-cart dsp-dragon-btn"
                       onClick={addToCart}
                       disabled={!selectedSize || totalStock === 0}
                     >
@@ -345,7 +338,7 @@ const Product = () => {
                     </button>
 
                     <button
-                      className="product-buy-now dragon-btn"
+                      className="dsp-buy-now dsp-dragon-btn"
                       onClick={buyNow}
                       disabled={!selectedSize || totalStock === 0}
                     >
@@ -354,7 +347,7 @@ const Product = () => {
                     </button>
 
                     <button
-                      className={`product-wishlist-btn ${isWishlisted ? 'active' : ''}`}
+                      className={`dsp-wishlist-btn ${isWishlisted ? 'dsp-active' : ''}`}
                       onClick={toggleWishlist}
                       title={isWishlisted ? "Retirer des favoris" : "Ajouter aux favoris"}
                     >
@@ -363,16 +356,16 @@ const Product = () => {
                   </div>
 
                   {/* Trust Badges */}
-                  <div className="product-trust-badges">
-                    <div className="product-trust-item">
+                  <div className="dsp-trust-badges">
+                    <div className="dsp-trust-item">
                       <i className="bi bi-truck"></i>
                       <span>Livraison gratuite</span>
                     </div>
-                    <div className="product-trust-item">
+                    <div className="dsp-trust-item">
                       <i className="bi bi-shield-check"></i>
                       <span>Garantie 2 ans</span>
                     </div>
-                    <div className="product-trust-item">
+                    <div className="dsp-trust-item">
                       <i className="bi bi-arrow-repeat"></i>
                       <span>Retours 30 jours</span>
                     </div>
@@ -385,14 +378,14 @@ const Product = () => {
 
         {/* Related Products - Dynamique */}
         {relatedProducts.length > 0 && (
-          <section className="product-related-specific">
-            <div className="product-page-width">
-              <div className="product-related-header">
+          <section className="dsp-related-products">
+            <div className="dsp-page-width">
+              <div className="dsp-related-header">
                 <h2>VOUS AIMEREZ AUSSI</h2>
                 <p>Complétez votre collection Dragon Soul</p>
               </div>
 
-              <div className="product-related-grid">
+              <div className="dsp-related-grid">
                 {relatedProducts.map((relatedProduct) => (
                   <ProductCard key={relatedProduct.id} product={relatedProduct} />
                 ))}

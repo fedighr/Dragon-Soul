@@ -4,8 +4,7 @@ import { Link } from "react-router-dom";
 import { jwtDecode } from "jwt-decode";
 import { useLogout } from "../../../hooks/useLogout.js";
 import { isLoggedIn } from "../../../utils/auth.jsx";
-import { useHeader } from "../../../hooks/useHeader.js";
-import { ButtonLoadingSpinner } from "../../common/loader/LoadingSpinner.jsx";
+import { useCart } from "../Context/CartContext";
 import "./Header.css";
 
 const Header = ({ image }) => {
@@ -13,38 +12,20 @@ const Header = ({ image }) => {
   const [user, setUser] = useState(null);
   const location = useLocation();
   const isDisabledPage = location.pathname === '/cart';
+  
   const {
-    cartItems,
     isCartOpen,
-    pendingDeleteItem,
-    loading,
-    loadingItems,
-    isClearing,
-    incrementQuantity,
-    decrementQuantity,
-    removeFromCart,
-    keepItem,
     getTotalItems,
-    getTotalPrice,
-    getItemLoadingState,
     openCart,
     closeCart,
-    
-    isMobileMenuOpen,
-    isSearchOpen,
-    isUserMenuOpen,
-    searchQuery,
-    
-    toggleMobileMenu,
-    toggleSearch,
-    toggleUserMenu,
-    closeAllMenus,
-    setSearchQuery,
-    
-    setIsMobileMenuOpen,
-    setIsSearchOpen,
-    setIsUserMenuOpen
-  } = useHeader();
+    cartItems,
+    loading
+  } = useCart();
+  
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const searchPanelRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -82,7 +63,7 @@ const Header = ({ image }) => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [setIsSearchOpen, setIsUserMenuOpen, setIsMobileMenuOpen]);
+  }, []);
 
   useEffect(() => {
     if (isMobileMenuOpen || isSearchOpen || isCartOpen) {
@@ -101,7 +82,7 @@ const Header = ({ image }) => {
     setUser(null);
     closeAllMenus();
     window.location.reload();
-  }, [logout, closeAllMenus]);
+  }, [logout]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -122,13 +103,29 @@ const Header = ({ image }) => {
     closeAllMenus();
   };
 
-  const handleCartOverlayClick = (e) => {
-    if (e.target === e.currentTarget) {
-      closeCart();
-    }
-  };
+  const toggleMobileMenu = useCallback(() => {
+    setIsMobileMenuOpen(prev => !prev);
+    setIsSearchOpen(false);
+    setIsUserMenuOpen(false);
+  }, []);
 
-  const displayedCartItems = Array.isArray(cartItems) ? cartItems.slice(0, 4) : [];
+  const toggleSearch = useCallback(() => {
+    setIsSearchOpen(prev => !prev);
+    setIsMobileMenuOpen(false);
+    setIsUserMenuOpen(false);
+  }, []);
+
+  const toggleUserMenu = useCallback(() => {
+    setIsUserMenuOpen(prev => !prev);
+    setIsMobileMenuOpen(false);
+    setIsSearchOpen(false);
+  }, []);
+
+  const closeAllMenus = useCallback(() => {
+    setIsMobileMenuOpen(false);
+    setIsSearchOpen(false);
+    setIsUserMenuOpen(false);
+  }, []);
 
   return (
     <header className="header">
@@ -237,6 +234,9 @@ const Header = ({ image }) => {
               aria-label="Shopping cart"
             >
               <i className="bi bi-cart"></i>
+              {getTotalItems() > 0 && (
+                <span className="cart-badge">{getTotalItems()}</span>
+              )}
               {loading && cartItems.length === 0 && (
                 <span className="cart-loading-indicator"></span>
               )}
@@ -265,6 +265,9 @@ const Header = ({ image }) => {
               aria-label="Shopping cart"
             >
               <i className="bi bi-cart"></i>
+              {getTotalItems() > 0 && (
+                <span className="cart-badge">{getTotalItems()}</span>
+              )}
               {loading && cartItems.length === 0 && (
                 <span className="cart-loading-indicator"></span>
               )}
@@ -373,7 +376,7 @@ const Header = ({ image }) => {
             </Link>
             <button disabled={isDisabledPage} className="mobile-action-btn" onClick={handleCartClick}>
               <i className="bi bi-cart"></i>
-              <span>Cart</span>
+              <span>Cart {getTotalItems() > 0 && `(${getTotalItems()})`}</span>
             </button>
             <button className="mobile-action-btn" onClick={closeAllMenus}>
               <i className="bi bi-question-circle"></i>
@@ -456,236 +459,7 @@ const Header = ({ image }) => {
         </div>
       </div>
 
-      <div 
-        className={`cart-overlay ${isCartOpen ? 'active' : ''}`} 
-        onClick={handleCartOverlayClick}
-      ></div>
-      
-      <div className={`cart-slide-in ${isCartOpen ? 'active' : ''}`}>
-        <div className="cart-header">
-          <div className="cart-title">
-            <i className="bi bi-cart3"></i>
-            <h3>Your Cart ({getTotalItems()})</h3>
-            {loading && cartItems.length === 0 && (
-              <div className="header-cart-loader">
-                <div className="mini-spinner">
-                  <div className="spinner-dot"></div>
-                </div>
-              </div>
-            )}
-          </div>
-          <button 
-            className="cart-close-btn" 
-            onClick={closeCart} 
-            aria-label="Close cart"
-          >
-            <i className="bi bi-x-lg"></i>
-          </button>
-        </div>
-
-        <div className="cart-content">
-          {loading && cartItems.length === 0 ? (
-            <div className="cart-loading">
-              <div className="loading-cart-items">
-                {[1, 2, 3].map((i) => (
-                  <div key={i} className="cart-item-skeleton">
-                    <div className="skeleton-image"></div>
-                    <div className="skeleton-details">
-                      <div className="skeleton-line short"></div>
-                      <div className="skeleton-line medium"></div>
-                      <div className="skeleton-line long"></div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : displayedCartItems.length === 0 ? (
-            <div className="empty-cart">
-              <div className="empty-cart-icon">
-                <i className="bi bi-cart-x"></i>
-              </div>
-              <h4>Your cart is empty</h4>
-              <p>Add some products to get started</p>
-              
-              <button className="continue-shopping-btn" onClick={closeCart}>
-                Continue Shopping
-              </button>
-            </div>
-          ) : (
-            <>
-              <div className="cart-items">
-                {displayedCartItems.map((item, index) => {
-                  const isUpdating = getItemLoadingState(item.id, item.color, item.size, 'quantity');
-                  const isRemoving = getItemLoadingState(item.id, item.color, item.size, 'remove');
-                  
-                  return (
-                    <div 
-                      key={`${item.id}-${item.color}-${item.size}`} 
-                      className={`cart-item ${isUpdating || isRemoving ? 'updating' : ''}`}
-                      style={{ animationDelay: `${index * 0.1}s` }}
-                    >
-                      <div className="item-image">
-                        <img src={item.image} alt={item.name} />
-                        {(isUpdating || isRemoving) && (
-                          <div className="item-loading-overlay">
-                            <div className="mini-spinner">
-                              <div className="spinner-dot"></div>
-                              <div className="spinner-dot"></div>
-                              <div className="spinner-dot"></div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="item-details">
-                        <h4 className="item-name">{item.name}</h4>
-                        <p className="item-id">ID: {item.productId || item.id}</p>
-                        <div className="item-attributes">
-                          <span className="item-color">
-                            <span 
-                              className="color-swatch" 
-                              style={{ 
-                                backgroundColor: item.color?.toLowerCase().includes('black') ? '#000' : 
-                                              item.color?.toLowerCase().includes('blue') ? '#1e40af' : 
-                                              item.color?.toLowerCase().includes('white') ? '#e5e5e5' : '#6b7280' 
-                              }}
-                            ></span>
-                            {item.color}
-                          </span>
-                          <span className="item-size">Size: {item.size}</span>
-                        </div>
-                        <div className="item-price">
-                          {isUpdating ? (
-                            <div className="price-loader-small">
-                              <div className="shimmer-line-small"></div>
-                            </div>
-                          ) : (
-                            `$${item.price}`
-                          )}
-                        </div>
-                      </div>
-                      <div className="item-controls">
-                        <div className="quantity-controls">
-                          <button
-                            className="quantity-btn"
-                            onClick={() => decrementQuantity(item.id, item.color, item.size)}
-                            disabled={isUpdating || isRemoving || item.quantity <= 1}
-                            aria-label="Decrease quantity"
-                          >
-                            {isUpdating && item.quantity === 1 ? (
-                              <div className="button-mini-loader">
-                                <div className="loader-dot-small"></div>
-                              </div>
-                            ) : (
-                              <i className="bi bi-dash"></i>
-                            )}
-                          </button>
-                          <span className="quantity">
-                            {isUpdating ? (
-                              <div className="quantity-loader-small">
-                                <div className="pulse-dot-small"></div>
-                              </div>
-                            ) : (
-                              item.quantity
-                            )}
-                          </span>
-                          <button
-                            className="quantity-btn"
-                            onClick={() => incrementQuantity(item.id, item.color, item.size)}
-                            disabled={isUpdating || isRemoving}
-                            aria-label="Increase quantity"
-                          >
-                            {isUpdating ? (
-                              <div className="button-mini-loader">
-                                <div className="loader-dot-small"></div>
-                              </div>
-                            ) : (
-                              <i className="bi bi-plus"></i>
-                            )}
-                          </button>
-                        </div>
-                        <button
-                          className="delete-btn"
-                          onClick={() => removeFromCart(item.id, item.color, item.size)}
-                          disabled={isRemoving || isUpdating}
-                          aria-label="Remove item"
-                        >
-                          {isRemoving ? (
-                            <div className="mini-loader">
-                              <div className="spinner-dot-small"></div>
-                            </div>
-                          ) : (
-                            <i className="bi bi-trash"></i>
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {cartItems.length > 4 && (
-                <div className="see-all-section">
-                  <Link to="/cart" className="see-all-btn" onClick={closeCart}>
-                    <i className="bi bi-arrow-right"></i>
-                    See All Orders ({cartItems.length - 4} more)
-                  </Link>
-                </div>
-              )}
-
-              <div className="cart-summary">
-                <div className="summary-row">
-                  <span>Subtotal:</span>
-                  <span className="price">${getTotalPrice().toFixed(2)}</span>
-                </div>
-                <div className="summary-row">
-                  <span>Shipping:</span>
-                  <span className="free">Free</span>
-                </div>
-                <div className="summary-divider"></div>
-                <div className="summary-row total">
-                  <span>Total:</span>
-                  <span className="price">${getTotalPrice().toFixed(2)}</span>
-                </div>
-                
-                <div className="cart-actions">
-                  <Link to="/cart" className="view-cart-btn" onClick={closeCart}>
-                    View Full Cart
-                  </Link>
-                  <button className="checkout-btn">
-                    Proceed to Checkout
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-
-      {pendingDeleteItem && (
-        <div className="delete-confirmation-modal">
-          <div className="modal-overlay" onClick={keepItem}></div>
-          <div className="modal-content">
-            <div className="modal-icon">
-              <i className="bi bi-exclamation-triangle"></i>
-            </div>
-            <h4>Remove Item</h4>
-            <p>Are you sure you want to remove "<strong>{pendingDeleteItem.name}</strong>" from your cart?</p>
-            <div className="modal-actions">
-              <button className="cancel-btn" onClick={keepItem}>
-                Keep Item
-              </button>
-              <button 
-                className="confirm-delete-btn" 
-                onClick={() => removeFromCart(pendingDeleteItem.id, pendingDeleteItem.color, pendingDeleteItem.size)}
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {(isMobileMenuOpen || isSearchOpen || isCartOpen) && (
+      {(isMobileMenuOpen || isSearchOpen) && (
         <div className="overlay" onClick={closeAllMenus}></div>
       )}
     </header>

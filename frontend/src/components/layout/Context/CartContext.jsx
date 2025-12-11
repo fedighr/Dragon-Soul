@@ -1,86 +1,67 @@
-import { createContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { 
   getCartItems, 
-  /*addCartItem, */
   updateCartItem,
   removeCartItem, 
   clearCartItems
-} from "../services/order"; 
+} from "../../../services/order";
 
-export const useHeader = () => {
+const CartContext = createContext(null);
+
+export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [pendingDeleteItem, setPendingDeleteItem] = useState(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [loadingItems, setLoadingItems] = useState({});
-  const [isClearing, setIsClearing] = useState(false); 
-  
-  const token = localStorage.getItem('access');
-  const userId = token ? jwtDecode(token).id : null;
-  
+  const [isClearing, setIsClearing] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
-    const fetchCartItems = async () => {
-      if(!userId) return;
-      setLoading(true);
+    const savedCart = localStorage.getItem('cart');
+    if (savedCart) {
       try {
-        
-        const response = await getCartItems(userId);
-        setCartItems(Array.isArray(response) ? response : []);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching cart items:', err);
-        setError('Failed to load cart items');
-        setCartItems([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCartItems();
-  }, [userId]);
-
-  const addToCart = useCallback(async (product) => {
-    try {
-      setLoading(true);
-      const response = await addCartItem(product);
-      setCartItems(prev => {
-        const existingItem = prev.find(item => 
-          item.id === product.id && 
-          item.color === product.color && 
-          item.size === product.size
-        );
-
-        if (existingItem) {
-          return prev.map(item =>
-            item.id === product.id && item.color === product.color && item.size === product.size
-              ? { ...item, quantity: item.quantity + (product.quantity || 1) }
-              : item
-          );
-        } else {
-          return [...prev, { 
-            ...product, 
-            quantity: product.quantity || 1,
-            id: product.id || Date.now().toString()
-          }];
+        const parsed = JSON.parse(savedCart);
+        if (Array.isArray(parsed)) {
+          setCartItems(parsed);
         }
-      });
-      setError(null);
-    } catch (err) {
-      console.error('Error adding item to cart:', err);
-      setError('Failed to add item to cart');
-    } finally {
-      setLoading(false);
+      } catch (err) {
+        console.error('Error loading cart from localStorage:', err);
+      }
     }
   }, []);
 
-  const updateQuantity = useCallback(async (itemId, color, size, newQuantity, userId) => {
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const token = localStorage.getItem('access');
+  const userId = token ? jwtDecode(token).id : null;
+  
+  const fetchCartItems = useCallback(async () => {
+    if (!userId) return;
+    
+    setLoading(true);
+    try {
+      const response = await getCartItems(userId);
+      const items = Array.isArray(response) ? response : [];
+      setCartItems(items);
+      localStorage.setItem('cart', JSON.stringify(items));
+      setError(null);
+    } catch (err) {
+      console.error('Error fetching cart items:', err);
+      setError('Failed to load cart items');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    fetchCartItems();
+  }, [fetchCartItems]);
+
+  const updateQuantity = useCallback(async (itemId, color, size, newQuantity) => {
     if (newQuantity < 0) return;
     
     if (newQuantity === 0) {
@@ -90,12 +71,15 @@ export const useHeader = () => {
       setPendingDeleteItem(itemToDelete);
       return;
     }
-
+    
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'quantity' }));
     
     try {
-      await updateCartItem(itemId, newQuantity, userId);
+      if (userId) {
+        await updateCartItem(itemId, newQuantity, userId);
+      }
+      
       setCartItems(prev =>
         prev.map(item =>
           item.id === itemId && item.color === color && item.size === size
@@ -114,32 +98,35 @@ export const useHeader = () => {
         return newState;
       });
     }
-  }, [cartItems]);
+  }, [cartItems, userId]);
 
   const incrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity + 1, userId);
+      await updateQuantity(itemId, color, size, item.quantity + 1);
     }
-  }, [cartItems, updateQuantity, userId]);
+  }, [cartItems, updateQuantity]);
 
   const decrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity - 1, userId);
+      await updateQuantity(itemId, color, size, item.quantity - 1);
     }
-  }, [cartItems, updateQuantity, userId]);
+  }, [cartItems, updateQuantity]);
 
   const removeFromCart = useCallback(async (itemId, color, size) => {
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'remove' }));
     
     try {
-      await removeCartItem(itemId, userId);
+      if (userId) {
+        await removeCartItem(itemId, userId);
+      }
+      
       setCartItems(prev =>
         prev.filter(item =>
           !(item.id === itemId && item.color === color && item.size === size)
@@ -159,23 +146,58 @@ export const useHeader = () => {
     }
   }, [userId]);
 
+  const addToCart = useCallback(async (product) => {
+    try {
+      setLoading(true);
+      setCartItems(prev => {
+        const existingItem = prev.find(item => 
+          item.id === product.id && 
+          item.color === product.color && 
+          item.size === product.size
+        );
+
+        if (existingItem) {
+          return prev.map(item =>
+            item.id === product.id && item.color === product.color && item.size === product.size
+              ? { ...item, quantity: item.quantity + (product.quantity || 1) }
+              : item
+          );
+        } else {
+          return [...prev, { 
+            ...product, 
+            quantity: product.quantity || 1,
+            id: product.id || Date.now().toString(),
+            addedAt: Date.now()
+          }];
+        }
+      });
+      setError(null);
+    } catch (err) {
+      console.error('Error adding item to cart:', err);
+      setError('Failed to add item to cart');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const keepItem = useCallback(async () => {
     if (pendingDeleteItem) {
       await updateQuantity(
         pendingDeleteItem.id,
         pendingDeleteItem.color,
         pendingDeleteItem.size,
-        1,
-        userId
+        1
       );
       setPendingDeleteItem(null);
     }
-  }, [pendingDeleteItem, updateQuantity, userId]);
+  }, [pendingDeleteItem, updateQuantity]);
 
   const clearCart = useCallback(async () => {
     setIsClearing(true);
     try {
-      await clearCartItems(userId);
+      if (userId) {
+        await clearCartItems(userId);
+      }
       setCartItems([]);
       setError(null);
     } catch (err) {
@@ -187,15 +209,11 @@ export const useHeader = () => {
   }, [userId]);
 
   const getTotalItems = useCallback(() => {
-    return Array.isArray(cartItems)
-      ? cartItems.reduce((total, item) => total + item.quantity, 0)
-      : 0;
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
   }, [cartItems]);
 
   const getTotalPrice = useCallback(() => {
-    return Array.isArray(cartItems)
-      ? cartItems.reduce((total, item) => total + (item.price * item.quantity), 0)
-      : 0;
+    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
   }, [cartItems]);
 
   const getItemLoadingState = useCallback((itemId, color, size, type = 'quantity') => {
@@ -212,39 +230,14 @@ export const useHeader = () => {
     setPendingDeleteItem(null);
   }, []);
 
-  const toggleMobileMenu = useCallback(() => {
-    setIsMobileMenuOpen(prev => !prev);
-    setIsSearchOpen(false);
-    setIsUserMenuOpen(false);
-  }, []);
-
-  const toggleSearch = useCallback(() => {
-    setIsSearchOpen(prev => !prev);
-    setIsMobileMenuOpen(false);
-    setIsUserMenuOpen(false);
-  }, []);
-
-  const toggleUserMenu = useCallback(() => {
-    setIsUserMenuOpen(prev => !prev);
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
-  }, []);
-
-  const closeAllMenus = useCallback(() => {
-    setIsMobileMenuOpen(false);
-    setIsSearchOpen(false);
-    setIsUserMenuOpen(false);
-  }, []);
-
-  return {
+  const value = {
     cartItems,
-    isCartOpen,
     pendingDeleteItem,
     loading,
     error,
     loadingItems,
     isClearing,
-    
+    isCartOpen,
     addToCart,
     updateQuantity,
     incrementQuantity,
@@ -257,25 +250,21 @@ export const useHeader = () => {
     getItemLoadingState,
     openCart,
     closeCart,
-    
-    isMobileMenuOpen,
-    isSearchOpen,
-    isUserMenuOpen,
-    searchQuery,
-    
-    toggleMobileMenu,
-    toggleSearch,
-    toggleUserMenu,
-    closeAllMenus,
-    setSearchQuery,
-    
-    setCartItems,
-    setIsCartOpen,
     setPendingDeleteItem,
-    setIsMobileMenuOpen,
-    setIsSearchOpen,
-    setIsUserMenuOpen,
-    setLoading,
-    setError
+    fetchCartItems
   };
+
+  return (
+    <CartContext.Provider value={value}>
+      {children}
+    </CartContext.Provider>
+  );
+};
+
+export const useCart = () => {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
 };

@@ -1,6 +1,5 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import Header from '../../components/layout/Header/Header.jsx';
 import { useCart } from '../../hooks/useCart';
 import LoadingSpinner, { ButtonLoadingSpinner } from '../../components/common/loader/LoadingSpinner.jsx';
 import BackToTopButton from '../../components/common/button/BackToTopButton.jsx';
@@ -26,7 +25,6 @@ const Cart = () => {
   if (loading && cartItems.length === 0) {
     return (
       <div className="cart-page">
-        <Header />
         <div className="cart-container">
           <div className="loading-cart">
             <LoadingSpinner size="large" text="Loading your cart..." />
@@ -37,9 +35,7 @@ const Cart = () => {
   }
 
   return (
-    <div className="cart-page">
-      <Header />
-      
+    <div className="cart-page">      
       <div className="cart-container">
         <div className="cart-page-header">
           <div className="breadcrumb-nav">

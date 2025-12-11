@@ -1,7 +1,6 @@
 
 import React from "react";
 import "./Home.css";
-import Header from "../../components/layout/Header/Header.jsx";
 import Footer from "../../components/layout/Footer/Footer.jsx";
 import HomeCarousel from "../../components/layout/Carousel/HomeCarousel.jsx";
 import NewArrivalCarousel from "../../components/layout/Carousel/NewArrivalCarousel.jsx";
@@ -14,7 +13,6 @@ import BackToTopButton from "../../components/common/button/BackToTopButton.jsx"
 const Home = () => {
   return (
     <div className="home-container">
-        <Header />
         <HomeCarousel/>
         <ProductShowcase/>
         <BackToTopButton/>

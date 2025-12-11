@@ -4,21 +4,21 @@ from .models import Product, ProductColor, ProductColorSize
 class ProductColorSizeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductColorSize
-        fields = ["size", "stock"]
+        fields = ["id", "size", "stock"]
 
 class ProductColorSerializer(serializers.ModelSerializer):
     productcolorsize_set = ProductColorSizeSerializer(many=True)
 
     class Meta:
         model = ProductColor
-        fields = ["color", "image", "productcolorsize_set"]
+        fields = ["id", "color", "image", "productcolorsize_set"]
 
 class ProductSerializer(serializers.ModelSerializer):
     productcolor_set = ProductColorSerializer(many=True)
 
     class Meta:
         model = Product
-        fields = ["name", "price", "description", "created_at", "productcolor_set"]
+        fields = ["id", "name", "price", "description", "created_at", "productcolor_set"]
 
     def create(self, validated_data):
         colors_data = validated_data.pop("productcolor_set", [])

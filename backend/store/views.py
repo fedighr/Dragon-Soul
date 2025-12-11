@@ -100,3 +100,13 @@ class ProductListView(generics.ListAPIView):
 class AddProduct(ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer    
+
+class getProductById(ModelViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def get_queryset(self):
+        request = self.request
+        id = request.GET.get('id')
+        query = Product.objects.filter(id=id)
+        return query

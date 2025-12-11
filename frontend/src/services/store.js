@@ -1,9 +1,8 @@
 import api from "./api";
-import axios from "axios";
 
 export const fetchProducts = async (filters, ordering, type, page) => {
   try {
-    const response = await axios.get("http://127.0.0.1:8000/store/products/", {
+    const response = await api.get("store/products/", {
       params: {
         filters: JSON.stringify(filters),
         ordering,
@@ -12,9 +11,7 @@ export const fetchProducts = async (filters, ordering, type, page) => {
       },
       validateStatus: (status) => status >= 200 && status < 500,
     });
-    console.log(response,status);
-    console.log(page);
-    console.log(response.data.results);
+    console.log(response.data);
     if (response.status === 404) {
       return [];
     }

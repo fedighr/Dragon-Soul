@@ -1,5 +1,4 @@
 import React from "react";
-import Header from "../../components/layout/Header/Header.jsx";
 import Footer from "../../components/layout/Footer/Footer.jsx";
 import BackToTopButton from "../../components/common/button/BackToTopButton.jsx";
 import ProductCard from "../../components/common/container/ProductCard.jsx";
@@ -44,7 +43,6 @@ const StorePage = () => {
 
   return (
     <div className="store-page">
-      <Header/>
       <div className={`store-control-bar ${store.tabsBarVisible ? 'visible' : 'hidden'}`}>
         <div className="control-bar-content">
           <CategoryButton store={store} />
@@ -215,6 +213,9 @@ const StorePage = () => {
                       price: `${product.price}DT`,
                       isShowMore: false,
                       isEmpty: false
+                    }}
+                    onAddtoCart={()=>{
+                      
                     }}
                   />
                 ))}

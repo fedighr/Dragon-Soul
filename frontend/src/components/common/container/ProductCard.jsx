@@ -1,11 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./ProductCard.css";
 import { useNavigate } from 'react-router-dom';
 
-const ProductCard = ({ product, onShowMore }) => {
+const ProductCard = ({ product, onShowMore,}) => {
   const [isMobileActive, setIsMobileActive] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [productId, setProductId] = useState(null);
   const navigate = useNavigate();
   const handleCardClick = (e) => {
     if (window.innerWidth < 1024) {
@@ -13,6 +14,11 @@ const ProductCard = ({ product, onShowMore }) => {
       setIsMobileActive(!isMobileActive);
     }
   };
+
+useEffect(()=>{
+  setProductId(product.id);
+
+},[]);
 
   React.useEffect(() => {
     const handleClickOutside = (e) => {
@@ -81,7 +87,9 @@ const ProductCard = ({ product, onShowMore }) => {
         <span className="new-badge">NEW</span>
 
         <div className="product-actions">
-          <button className="action-btn add-to-cart">
+          <button className="action-btn add-to-cart"
+          onClick={()=> onAddtoCart && onAddtoCart(product)}
+          >
             <i className="bi bi-cart-plus"></i>
             Add To Cart
           </button>
@@ -92,7 +100,7 @@ const ProductCard = ({ product, onShowMore }) => {
             <button
                 className="action-btn view"
                 title="View Product"
-                onClick={() => navigate('/Product')}
+                onClick={() => navigate(`/Product/${productId}`)}
             >
               <i className="bi bi-eye"></i>
             </button>

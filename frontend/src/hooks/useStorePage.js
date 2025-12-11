@@ -41,7 +41,7 @@ export const useStorePage = () => {
     if (productsGridRef.current && !isInitialLoad && !isFetchingMore) {
       const cards = productsGridRef.current.querySelectorAll('.product-card');
       cards.forEach((card, index) => {
-        const isNew = index >= filteredProducts.length - 10; // Last page of products
+        const isNew = index >= filteredProducts.length - 10;
         if (isNew) {
           card.style.animation = `fadeInUp 0.5s ease ${Math.min(index * 0.03, 0.5)}s forwards`;
           card.style.opacity = '0';
@@ -70,21 +70,21 @@ export const useStorePage = () => {
   }, [hasMore, loading, isFetchingMore, isInitialLoad]);
 
   useEffect(() => {
-    loadInitialProducts();
-  }, []);
-
-  useEffect(() => {
     if (!isInitialLoad) {
       setPage(1);
       setHasMore(true);
       loadProducts(1);
     }
   }, [appliedFilters, selectedSort, selectedCategory]);
+  
+  useEffect(()=>{
+
 
   const loadInitialProducts = async () => {
     setLoading(true);
     setError(null);
     try {
+      console.log("first load");
       const products = await fetchProducts(appliedFilters, selectedSort, selectedCategory, 1);
       if (products.length === 0) {
         setShowNoProductsMessage(true);
@@ -101,6 +101,8 @@ export const useStorePage = () => {
       setLoading(false);
     }
   };
+  loadInitialProducts();
+  },[]);
 
   const loadProducts = async (pageNum) => {
     if (loading || isFetchingMore) return;
@@ -113,8 +115,8 @@ export const useStorePage = () => {
     
     setError(null);
     try {
+      console.log("second load");
       const products = await fetchProducts(appliedFilters, selectedSort, selectedCategory, pageNum);
-      
       if (products.length === 0) {
         setHasMore(false);
         if (pageNum === 1) {

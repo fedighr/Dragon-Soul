@@ -36,11 +36,12 @@ export const fetchProducts = async (filters, ordering, type, page) => {
   }
 };
 
-export const addCartItem = async (id) => {
+export const addCartItem = async (item) => {
 
     try{
-    const response = await api.post("order/orders/",{params: { user: id }})
-    return response.data
+      const { name, price, color, size, image, quantity, user_id, productId } = item;
+      console.log("item",item);
+      const response = await api.post("order/orders/addOrder/",{ name, price, color, size, image, quantity, user: user_id, product: productId })
     }catch(error){
         if (error.response) {
       throw error.response.data;

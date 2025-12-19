@@ -17,6 +17,8 @@ export const CartProvider = ({ children }) => {
   const [loadingItems, setLoadingItems] = useState({});
   const [isClearing, setIsClearing] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [stockErrors, setStockErrors] = useState({});
+  const [addedItem, setAddedItem] = useState(null);
 
   useEffect(() => {
     const savedCart = localStorage.getItem('cart');
@@ -61,7 +63,7 @@ export const CartProvider = ({ children }) => {
     fetchCartItems();
   }, [fetchCartItems]);
 
-  const updateQuantity = useCallback(async (itemId, color, size, newQuantity) => {
+  const updateQuantity = useCallback(async (itemId, color, size, newQuantity, option) => {
     if (newQuantity < 0) return;
     
     if (newQuantity === 0) {
@@ -74,10 +76,18 @@ export const CartProvider = ({ children }) => {
     
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'quantity' }));
+    setStockErrors(prev => ({ ...prev, [itemKey]: false }));
     
     try {
       if (userId) {
-        await updateCartItem(itemId, newQuantity, userId);
+        const response = await updateCartItem(itemId, newQuantity, option);
+        
+        if (response && response.success === false) {
+          if (response.message === 'Not enough') {
+            setStockErrors(prev => ({ ...prev, [itemKey]: true }));
+            return;
+          }
+        }
       }
       
       setCartItems(prev =>
@@ -105,7 +115,7 @@ export const CartProvider = ({ children }) => {
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity + 1);
+      await updateQuantity(itemId, color, size,  1, '+');
     }
   }, [cartItems, updateQuantity]);
 
@@ -114,7 +124,7 @@ export const CartProvider = ({ children }) => {
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity - 1);
+      await updateQuantity(itemId, color, size, 1, '-');
     }
   }, [cartItems, updateQuantity]);
 
@@ -149,36 +159,58 @@ export const CartProvider = ({ children }) => {
   const addToCart = useCallback(async (product) => {
     try {
       setLoading(true);
-      setCartItems(prev => {
-        const existingItem = prev.find(item => 
-          item.id === product.id && 
-          item.color === product.color && 
-          item.size === product.size
-        );
+      const existingItem = cartItems.find(item => 
+        item.id === product.id && 
+        item.color === product.color && 
+        item.size === product.size
+      );
 
-        if (existingItem) {
-          return prev.map(item =>
-            item.id === product.id && item.color === product.color && item.size === product.size
-              ? { ...item, quantity: item.quantity + (product.quantity || 1) }
-              : item
-          );
-        } else {
-          return [...prev, { 
-            ...product, 
-            quantity: product.quantity || 1,
-            id: product.id || Date.now().toString(),
-            addedAt: Date.now()
-          }];
+      if (existingItem) {
+        try {
+          const response = await updateCartItem(existingItem.id, 1, '+');
+          
+          if (response && response.success === false && response.message === 'Not enough') {
+            setError('Not enough stock available');
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking stock:', err);
         }
+        
+        setCartItems(prev => prev.map(item =>
+          item.id === product.id && item.color === product.color && item.size === product.size
+            ? { ...item, quantity: item.quantity + (product.quantity || 1) }
+            : item
+        ));
+      } else {
+        setCartItems(prev => [...prev, { 
+          ...product, 
+          quantity: product.quantity || 1,
+          id: product.id || Date.now().toString(),
+          addedAt: Date.now()
+        }]);
+      }
+      
+      setAddedItem({
+        id: product.id,
+        name: product.name,
+        color: product.color,
+        size: product.size
       });
+      
       setError(null);
+      
+      setTimeout(() => {
+        setAddedItem(null);
+      }, 4000);
+      
     } catch (err) {
       console.error('Error adding item to cart:', err);
       setError('Failed to add item to cart');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cartItems]);
 
   const keepItem = useCallback(async () => {
     if (pendingDeleteItem) {
@@ -186,7 +218,8 @@ export const CartProvider = ({ children }) => {
         pendingDeleteItem.id,
         pendingDeleteItem.color,
         pendingDeleteItem.size,
-        1
+        1,
+        '+'
       );
       setPendingDeleteItem(null);
     }
@@ -230,6 +263,10 @@ export const CartProvider = ({ children }) => {
     setPendingDeleteItem(null);
   }, []);
 
+  const clearAddedItem = useCallback(() => {
+    setAddedItem(null);
+  }, []);
+
   const value = {
     cartItems,
     pendingDeleteItem,
@@ -238,6 +275,8 @@ export const CartProvider = ({ children }) => {
     loadingItems,
     isClearing,
     isCartOpen,
+    stockErrors,
+    addedItem,
     addToCart,
     updateQuantity,
     incrementQuantity,
@@ -251,7 +290,8 @@ export const CartProvider = ({ children }) => {
     openCart,
     closeCart,
     setPendingDeleteItem,
-    fetchCartItems
+    fetchCartItems,
+    clearAddedItem
   };
 
   return (

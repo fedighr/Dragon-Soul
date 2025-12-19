@@ -6,8 +6,8 @@ class Order(models.Model):
     class Color(models.TextChoices):
         Red = 'Red', 'Red'
         Blue = 'Blue', 'Blue'
-        White = 'white', 'white'
-        Black = 'black', 'black'   
+        White = 'White', 'White'
+        Black = 'Black', 'Black'   
 
     class Size(models.TextChoices):
         XS = 'XS', 'Extra Small'
@@ -22,7 +22,7 @@ class Order(models.Model):
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
     color = models.CharField(max_length=30, choices=Color.choices, default=Color.White)
     size = models.CharField(max_length=5, choices=Size.choices, default=Size.L)
-    image = models.ImageField(upload_to='order/',null=True, blank=True)
+    image = models.CharField(null=True, blank=True)
     quantity = models.PositiveIntegerField(default=0)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)

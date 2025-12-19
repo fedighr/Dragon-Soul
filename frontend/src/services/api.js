@@ -23,6 +23,7 @@ const PUBLIC_ENDPOINTS = [
     "/users/ResetPassword3/",
     "/users/verifyEmailUsed/",
     "/store/products/",
+    "/order/orders/",
   // Add any other public endpoints here
 ];
 

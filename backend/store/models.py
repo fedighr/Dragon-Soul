@@ -21,6 +21,9 @@ class ProductColor(models.Model):
     color = models.CharField(max_length=30, choices=Color.choices, default=Color.White)
     image = models.ImageField(upload_to='products/',null=True)
 
+    class Meta:
+        unique_together = ('product_id', 'color')
+
 class ProductColorSize(models.Model):
 
     class Size(models.TextChoices):
@@ -35,4 +38,7 @@ class ProductColorSize(models.Model):
     color_id = models.ForeignKey(ProductColor, on_delete=models.CASCADE)
     size = models.CharField(max_length=5,choices=Size.choices,default=Size.M)
     stock = models.PositiveIntegerField(default=0)
+    
+    class Meta:
+        unique_together = ('color_id', 'size')
 

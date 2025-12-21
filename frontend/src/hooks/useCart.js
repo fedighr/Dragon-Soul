@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { 
   getCartItems, 
+  /*addCartItem,*/
   updateCartItem,
   removeCartItem, 
   clearCartItems
@@ -57,7 +58,7 @@ export const useCart = () => {
           
           if (response && response.success === false && response.message === 'Not enough') {
             setError('Not enough stock available');
-            return false;
+            return;
           }
         } catch (err) {
           console.error('Error checking stock:', err);
@@ -89,58 +90,52 @@ export const useCart = () => {
         setAddedItem(null);
       }, 4000);
       
-      return true;
-      
     } catch (err) {
       console.error('Error adding item to cart:', err);
       setError('Failed to add item to cart');
-      return false;
     } finally {
       setLoading(false);
     }
   }, [cartItems]);
 
-  const updateQuantity = useCallback(async (itemId, color, size, option) => {
+  const updateQuantity = useCallback(async (itemId, color, size, newQuantity, option) => {
+    if (newQuantity < 0) return;
+    
+    if (newQuantity === 0) {
+      const itemToDelete = cartItems.find(item => 
+        item.id === itemId && item.color === color && item.size === size
+      );
+      setPendingDeleteItem(itemToDelete);
+      return;
+    }
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'quantity' }));
     setStockErrors(prev => ({ ...prev, [itemKey]: false }));
     
     try {
+      let response;
       if (userId) {
-        const response = await updateCartItem(itemId, 1, option);
+        response = await updateCartItem(itemId, 1, option);
         
         if (response && response.success === false) {
           if (response.message === 'Not enough') {
             setStockErrors(prev => ({ ...prev, [itemKey]: true }));
-            return false;
+            return;
           }
         }
       }
-      
+      console.log(response);
       setCartItems(prev =>
-        prev.map(item => {
-          if (item.id === itemId && item.color === color && item.size === size) {
-            const newQuantity = option === '+' ? item.quantity + 1 : item.quantity - 1;
-            
-            if (newQuantity === 0) {
-              const itemToDelete = prev.find(item => 
-                item.id === itemId && item.color === color && item.size === size
-              );
-              setPendingDeleteItem(itemToDelete);
-              return item;
-            }
-            
-            return { ...item, quantity: newQuantity };
-          }
-          return item;
-        })
+        prev.map(item =>
+          item.id === itemId && item.color === color && item.size === size
+            ? { ...item, quantity: newQuantity, price: response.price }
+            : item
+        )
       );
       setError(null);
-      return true;
     } catch (err) {
       console.error('Error updating quantity:', err);
       setError('Failed to update quantity');
-      return false;
     } finally {
       setLoadingItems(prev => {
         const newState = { ...prev };
@@ -151,21 +146,21 @@ export const useCart = () => {
   }, [cartItems, userId]);
 
   const incrementQuantity = useCallback(async (itemId, color, size) => {
-    return await updateQuantity(itemId, color, size, '+');
-  }, [updateQuantity]);
+    const item = cartItems.find(item => 
+      item.id === itemId && item.color === color && item.size === size
+    );
+    if (item) {
+      await updateQuantity(itemId, color, size, item.quantity+1, '+');
+    }
+  }, [cartItems, updateQuantity]);
 
   const decrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
-    if (item && item.quantity === 1) {
-      const itemToDelete = cartItems.find(item => 
-        item.id === itemId && item.color === color && item.size === size
-      );
-      setPendingDeleteItem(itemToDelete);
-      return true;
+    if (item) {
+      await updateQuantity(itemId, color, size, item.quantity-1, '-');
     }
-    return await updateQuantity(itemId, color, size, '-');
   }, [cartItems, updateQuantity]);
 
   const removeFromCart = useCallback(async (itemId, color, size) => {
@@ -184,11 +179,9 @@ export const useCart = () => {
       );
       setPendingDeleteItem(null);
       setError(null);
-      return true;
     } catch (err) {
       console.error('Error removing item from cart:', err);
       setError('Failed to remove item from cart');
-      return false;
     } finally {
       setLoadingItems(prev => {
         const newState = { ...prev };
@@ -204,6 +197,7 @@ export const useCart = () => {
         pendingDeleteItem.id,
         pendingDeleteItem.color,
         pendingDeleteItem.size,
+        1,
         '+'
       );
       setPendingDeleteItem(null);
@@ -231,7 +225,7 @@ export const useCart = () => {
   }, [cartItems]);
 
   const getTotalPrice = useCallback(() => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.price ), 0);
   }, [cartItems]);
 
   const getItemLoadingState = useCallback((itemId, color, size, type = 'quantity') => {

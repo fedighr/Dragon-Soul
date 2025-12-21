@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import "./ProductCard.css";
 import { useNavigate } from 'react-router-dom';
 import { useCart } from "../../layout/Context/CartContext";
-import { addCartItem } from "../../../services/store"
 
 const ProductCard = ({ product, productcolor_set, onAddtoCart }) => {
   const [isMobileActive, setIsMobileActive] = useState(false);
@@ -13,7 +12,7 @@ const ProductCard = ({ product, productcolor_set, onAddtoCart }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
   const navigate = useNavigate();
-  const { toastMessage, clearToastMessage } = useCart();
+  const { addToCart} = useCart();
   const touchStartRef = useRef(null);
   const touchEndRef = useRef(null);
   const longPressTimerRef = useRef(null);
@@ -86,8 +85,9 @@ const ProductCard = ({ product, productcolor_set, onAddtoCart }) => {
       case 'cart':
         setIsAdding(true);
         try {
+          const productData = onAddtoCart();
+          const success = await addToCart(productData);
           
-          const success = await addCartItem(onAddtoCart());
           if (success) {
             setAddSuccess(true);
             
@@ -360,26 +360,7 @@ const ProductCard = ({ product, productcolor_set, onAddtoCart }) => {
         )}
       </div>
       
-      {toastMessage && (
-        <div className={`product-toast-notification ${toastMessage.type}`}>
-          <div className="toast-content">
-            {toastMessage.type === 'success' ? (
-              <i className="bi bi-check-circle-fill"></i>
-            ) : toastMessage.type === 'error' ? (
-              <i className="bi bi-exclamation-circle-fill"></i>
-            ) : (
-              <i className="bi bi-info-circle-fill"></i>
-            )}
-            <span>{toastMessage.text}</span>
-            <button 
-              className="toast-close"
-              onClick={clearToastMessage}
-            >
-              <i className="bi bi-x"></i>
-            </button>
-          </div>
-        </div>
-      )}
+
     </>
   );
 };

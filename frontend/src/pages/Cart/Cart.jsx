@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../../hooks/useCart';
 import LoadingSpinner, { ButtonLoadingSpinner } from '../../components/common/loader/LoadingSpinner.jsx';
 import BackToTopButton from '../../components/common/button/BackToTopButton.jsx';
+import Footer from "../../components/layout/Footer/Footer.jsx"
 import './cart.css';
 
 const Cart = () => {
@@ -129,7 +130,8 @@ const Cart = () => {
                                 className="color-indicator" 
                                 style={{ 
                                   backgroundColor: item.color?.toLowerCase().includes('black') ? '#000' : 
-                                                item.color?.toLowerCase().includes('blue') ? '#1e40af' : 
+                                                item.color?.toLowerCase().includes('blue') ? '#1e40af' :
+                                                item.color?.toLowerCase().includes('red') ? '#dd0000ff' :  
                                                 item.color?.toLowerCase().includes('white') ? '#e5e5e5' : '#6b7280' 
                                 }}
                               ></span>
@@ -142,7 +144,7 @@ const Cart = () => {
                           </div>
                           <div className="detail-item">
                             <span className="detail-label">Price:</span>
-                            <span className="detail-value price">${item.price}</span>
+                            <span className="detail-value price">{(item.price/item.quantity).toFixed(2)}DT</span>
                           </div>
                         </div>
                       </div>
@@ -199,7 +201,7 @@ const Cart = () => {
                                 <div className="shimmer-line"></div>
                               </div>
                             ) : (
-                              `$${(item.price * item.quantity).toFixed(2)}`
+                              `${item.price.toFixed(2) }DT`
                             )}
                           </span>
                         </div>
@@ -235,7 +237,7 @@ const Cart = () => {
                 <div className="summary-details">
                   <div className="summary-row">
                     <span>Subtotal:</span>
-                    <span className="value">${getTotalPrice().toFixed(2)}</span>
+                    <span className="value">{getTotalPrice().toFixed(2)}DT</span>
                   </div>
                   <div className="summary-row">
                     <span>Shipping:</span>
@@ -250,7 +252,7 @@ const Cart = () => {
                   
                   <div className="summary-row grand-total">
                     <span>Total:</span>
-                    <span className="value total">${getTotalPrice().toFixed(2)}</span>
+                    <span className="value total">{getTotalPrice().toFixed(2)}DT</span>
                   </div>
                 </div>
 
@@ -322,6 +324,7 @@ const Cart = () => {
         </div>
       )}
       <BackToTopButton/>
+      <Footer/>
     </div>
   );
 };

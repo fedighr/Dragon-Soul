@@ -4,6 +4,7 @@ class Product(models.Model):
 
     name = models.CharField(max_length=100)
     price = models.DecimalField(max_digits=8, decimal_places=2, default=0.0)
+    Purchases = models.IntegerField(default=0, null=True, blank=True)
     description = models.TextField(blank=True, null=True) 
     created_at = models.DateTimeField(auto_now_add=True, null=True)
 

@@ -513,7 +513,6 @@
     transition: none;
   }
 }
-/* Add these styles to ProductCard.css */
 
 .product-toast-notification {
   position: fixed;
@@ -581,7 +580,6 @@
   }
 }
 
-/* Mobile adjustments */
 @media (max-width: 768px) {
   .product-toast-notification {
     top: 10px;

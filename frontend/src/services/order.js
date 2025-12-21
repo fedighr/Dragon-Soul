@@ -16,7 +16,7 @@ export const getCartItems = async(id) => {
 export const removeCartItem = async (id, user_id) =>{
 
     try{
-        await api.delete(`order/orders/${id}/`,{params : {user : user_id}});
+        await api.delete(`order/orders/${id}/delete_one/`,{params : {user : user_id}});
 
     }catch(error){
         if (error.response) {

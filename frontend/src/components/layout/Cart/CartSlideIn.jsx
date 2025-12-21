@@ -1,6 +1,7 @@
-import React, { useMemo, useCallback, memo, useEffect, useRef } from 'react';
+import React, { useMemo, useCallback, memo, useEffect, useRef, useState } from 'react';
 import { Link } from "react-router-dom";
 import { useCart } from "../Context/CartContext"
+import { InlineLoader } from "../../common/loader/LoadingSpinner.jsx";
 import "./CartSlideIn.css";
 
 const CartItem = memo(({ 
@@ -47,7 +48,7 @@ const CartItem = memo(({
           <span className="item-size">Size: {size}</span>
         </div>
         <div className="item-price">
-          ${(price * quantity).toFixed(2)}
+          {(price).toFixed(2)}DT
         </div>
       </div>
       
@@ -59,16 +60,18 @@ const CartItem = memo(({
             disabled={isUpdating || isRemoving || quantity <= 1}
             aria-label="Decrease quantity"
           >
-            <i className="bi bi-dash"></i>
+            {isUpdating && quantity === 1 ? <InlineLoader size="small" /> : <i className="bi bi-dash"></i>}
           </button>
-          <span className="quantity">{quantity}</span>
+          <span className="quantity">
+            {isUpdating ? <InlineLoader size="small" /> : quantity}
+          </span>
           <button
             className={`quantity-btn ${stockError ? 'stock-error' : ''}`}
             onClick={() => onIncrement(id, color, size)}
             disabled={isUpdating || isRemoving || stockError}
             aria-label="Increase quantity"
           >
-            <i className="bi bi-plus"></i>
+            {isUpdating ? <InlineLoader size="small" /> : <i className="bi bi-plus"></i>}
           </button>
         </div>
         <button
@@ -77,7 +80,7 @@ const CartItem = memo(({
           disabled={isRemoving || isUpdating}
           aria-label="Remove item"
         >
-          <i className="bi bi-trash"></i>
+          {isRemoving ? <InlineLoader size="small" /> : <i className="bi bi-trash"></i>}
         </button>
       </div>
     </div>
@@ -116,6 +119,7 @@ const CartSlideIn = () => {
 
   const cartRef = useRef(null);
   const isClosingRef = useRef(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   const displayedCartItems = useMemo(() => 
     Array.isArray(cartItems) ? cartItems : []
@@ -163,15 +167,30 @@ const CartSlideIn = () => {
   }, [closeCart]);
 
   const handleIncrement = useCallback(async (itemId, color, size) => {
-    await incrementQuantity(itemId, color, size);
+    setIsAnimating(true);
+    try {
+      await incrementQuantity(itemId, color, size);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 300);
+    }
   }, [incrementQuantity]);
 
   const handleDecrement = useCallback(async (itemId, color, size) => {
-    await decrementQuantity(itemId, color, size);
+    setIsAnimating(true);
+    try {
+      await decrementQuantity(itemId, color, size);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 300);
+    }
   }, [decrementQuantity]);
 
   const handleRemove = useCallback(async (itemId, color, size) => {
-    await removeFromCart(itemId, color, size);
+    setIsAnimating(true);
+    try {
+      await removeFromCart(itemId, color, size);
+    } finally {
+      setTimeout(() => setIsAnimating(false), 300);
+    }
   }, [removeFromCart]);
 
   const handleCloseNotification = useCallback(() => {
@@ -206,7 +225,7 @@ const CartSlideIn = () => {
       
       <div 
         ref={cartRef}
-        className={`cart-slide-in ${isCartOpen ? 'active' : ''}`}
+        className={`cart-slide-in ${isCartOpen ? 'active' : ''} ${isAnimating ? 'animating' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-label="Shopping cart"
@@ -260,14 +279,14 @@ const CartSlideIn = () => {
             <>
               <div className="cart-items-container">
                 <div className="cart-items-scroll">
-                  {displayedCartItems.map((item) => {
+                  {displayedCartItems.map((item, index) => {
                     const isUpdating = getItemLoadingState(item.id, item.color, item.size, 'quantity');
                     const isRemoving = getItemLoadingState(item.id, item.color, item.size, 'remove');
                     const stockError = stockErrors[`${item.id}-${item.color}-${item.size}`];
                     
                     return (
                       <CartItem
-                        key={`${item.id}-${item.color}-${item.size}`}
+                        key={`${item.id}-${item.color}-${item.size}-${index}`}
                         item={item}
                         isUpdating={isUpdating}
                         isRemoving={isRemoving}
@@ -284,7 +303,7 @@ const CartSlideIn = () => {
               <div className="cart-summary">
                 <div className="summary-row total">
                   <span>Total:</span>
-                  <span className="price">${totalPrice.toFixed(2)}</span>
+                  <span className="price">{totalPrice.toFixed(2)}DT</span>
                 </div>
                 
                 <div className="cart-actions">

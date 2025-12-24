@@ -11,11 +11,10 @@ export const fetchProducts = async (filters, ordering, type, page) => {
       },
       validateStatus: (status) => status >= 200 && status < 500,
     });
-    console.log(response.data);
+    
     if (response.status === 404) {
       return [];
     }
-
 
     if (response.data && response.data.results) {
       return response.data.results;
@@ -36,16 +35,25 @@ export const fetchProducts = async (filters, ordering, type, page) => {
   }
 };
 
-export const addCartItem = async (id) => {
-
-    try{
-    const response = await api.post("order/orders/",{params: { user: id }})
-    return response.data
-    }catch(error){
-        if (error.response) {
+export const addCartItem = async (item) => {
+  try {
+    const { name, price, color, size, image, quantity, user_id, productId } = item;
+    const response = await api.post("order/orders/addOrder/", { 
+      name, 
+      price, 
+      color, 
+      size, 
+      image, 
+      quantity, 
+      user_id: user_id, 
+      product_id: productId 
+    });
+    return response.data;
+  } catch (error) {
+    if (error.response) {
       throw error.response.data;
     } else {
       throw { error: "Network error" };
     }
-    }
+  }
 };

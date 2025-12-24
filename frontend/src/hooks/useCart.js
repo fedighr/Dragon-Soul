@@ -15,6 +15,8 @@ export const useCart = () => {
   const [error, setError] = useState(null);
   const [loadingItems, setLoadingItems] = useState({});
   const [isClearing, setIsClearing] = useState(false); 
+  const [stockErrors, setStockErrors] = useState({});
+  const [addedItem, setAddedItem] = useState(null);
 
   const token = localStorage.getItem('access');
   const userId = token ? jwtDecode(token).id : null;
@@ -44,38 +46,59 @@ export const useCart = () => {
   const addToCart = useCallback(async (product) => {
     try {
       setLoading(true);
-      const response = await addCartItem(product);
-      setCartItems(prev => {
-        const existingItem = prev.find(item => 
-          item.id === product.id && 
-          item.color === product.color && 
-          item.size === product.size
-        );
+      const existingItem = cartItems.find(item => 
+        item.id === product.id && 
+        item.color === product.color && 
+        item.size === product.size
+      );
 
-        if (existingItem) {
-          return prev.map(item =>
-            item.id === product.id && item.color === product.color && item.size === product.size
-              ? { ...item, quantity: item.quantity + (product.quantity || 1) }
-              : item
-          );
-        } else {
-          return [...prev, { 
-            ...product, 
-            quantity: product.quantity || 1,
-            id: product.id || Date.now().toString()
-          }];
+      if (existingItem) {
+        try {
+          const response = await updateCartItem(existingItem.id, 1, '+');
+          
+          if (response && response.success === false && response.message === 'Not enough') {
+            setError('Not enough stock available');
+            return;
+          }
+        } catch (err) {
+          console.error('Error checking stock:', err);
         }
+        
+        setCartItems(prev => prev.map(item =>
+          item.id === product.id && item.color === product.color && item.size === product.size
+            ? { ...item, quantity: item.quantity + (product.quantity || 1) }
+            : item
+        ));
+      } else {
+        setCartItems(prev => [...prev, { 
+          ...product, 
+          quantity: product.quantity || 1,
+          id: product.id || Date.now().toString()
+        }]);
+      }
+      
+      setAddedItem({
+        id: product.id,
+        name: product.name,
+        color: product.color,
+        size: product.size
       });
+      
       setError(null);
+      
+      setTimeout(() => {
+        setAddedItem(null);
+      }, 4000);
+      
     } catch (err) {
       console.error('Error adding item to cart:', err);
       setError('Failed to add item to cart');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cartItems]);
 
-  const updateQuantity = useCallback(async (itemId, color, size, newQuantity, userId) => {
+  const updateQuantity = useCallback(async (itemId, color, size, newQuantity, option) => {
     if (newQuantity < 0) return;
     
     if (newQuantity === 0) {
@@ -85,16 +108,27 @@ export const useCart = () => {
       setPendingDeleteItem(itemToDelete);
       return;
     }
-    
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'quantity' }));
+    setStockErrors(prev => ({ ...prev, [itemKey]: false }));
     
     try {
-      await updateCartItem(itemId, newQuantity, userId);
+      let response;
+      if (userId) {
+        response = await updateCartItem(itemId, 1, option);
+        
+        if (response && response.success === false) {
+          if (response.message === 'Not enough') {
+            setStockErrors(prev => ({ ...prev, [itemKey]: true }));
+            return;
+          }
+        }
+      }
+      console.log(response);
       setCartItems(prev =>
         prev.map(item =>
           item.id === itemId && item.color === color && item.size === size
-            ? { ...item, quantity: newQuantity }
+            ? { ...item, quantity: newQuantity, price: response.price }
             : item
         )
       );
@@ -109,32 +143,35 @@ export const useCart = () => {
         return newState;
       });
     }
-  }, [cartItems]);
+  }, [cartItems, userId]);
 
   const incrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity + 1, userId);
+      await updateQuantity(itemId, color, size, item.quantity+1, '+');
     }
-  }, [cartItems, updateQuantity, userId]);
+  }, [cartItems, updateQuantity]);
 
   const decrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
     if (item) {
-      await updateQuantity(itemId, color, size, item.quantity - 1, userId);
+      await updateQuantity(itemId, color, size, item.quantity-1, '-');
     }
-  }, [cartItems, updateQuantity, userId]);
+  }, [cartItems, updateQuantity]);
 
   const removeFromCart = useCallback(async (itemId, color, size) => {
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'remove' }));
     
     try {
-      await removeCartItem(itemId, userId);
+      if (userId) {
+        await removeCartItem(itemId, userId);
+      }
+      
       setCartItems(prev =>
         prev.filter(item =>
           !(item.id === itemId && item.color === color && item.size === size)
@@ -161,16 +198,18 @@ export const useCart = () => {
         pendingDeleteItem.color,
         pendingDeleteItem.size,
         1,
-        userId
+        '+'
       );
       setPendingDeleteItem(null);
     }
-  }, [pendingDeleteItem, updateQuantity, userId]);
+  }, [pendingDeleteItem, updateQuantity]);
 
   const clearCart = useCallback(async () => {
     setIsClearing(true);
     try {
-      await clearCartItems(userId);
+      if (userId) {
+        await clearCartItems(userId);
+      }
       setCartItems([]);
       setError(null);
     } catch (err) {
@@ -186,13 +225,17 @@ export const useCart = () => {
   }, [cartItems]);
 
   const getTotalPrice = useCallback(() => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.price ), 0);
   }, [cartItems]);
 
   const getItemLoadingState = useCallback((itemId, color, size, type = 'quantity') => {
     const itemKey = `${itemId}-${color}-${size}`;
     return loadingItems[itemKey] === type;
   }, [loadingItems]);
+
+  const clearAddedItem = useCallback(() => {
+    setAddedItem(null);
+  }, []);
 
   return {
     cartItems,
@@ -201,6 +244,8 @@ export const useCart = () => {
     error,
     loadingItems,
     isClearing,
+    stockErrors,
+    addedItem,
     addToCart,
     updateQuantity,
     incrementQuantity,
@@ -211,6 +256,7 @@ export const useCart = () => {
     getTotalItems,
     getTotalPrice,
     getItemLoadingState,
-    setPendingDeleteItem
+    setPendingDeleteItem,
+    clearAddedItem
   };
 };

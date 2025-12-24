@@ -16,7 +16,7 @@ export const getCartItems = async(id) => {
 export const removeCartItem = async (id, user_id) =>{
 
     try{
-        await api.delete(`order/orders/${id}/`,{params : {user : user_id}});
+        await api.delete(`order/orders/${id}/delete_one/`,{params : {user : user_id}});
 
     }catch(error){
         if (error.response) {
@@ -28,20 +28,23 @@ export const removeCartItem = async (id, user_id) =>{
 
 };
 
-export const updateCartItem = async(id, quantity, user_id) =>{
+export const updateCartItem = async(id, quantity, option) =>{
     try{
-        await api.patch(`order/orders/${id}/`,{quantity},{params : {user : user_id }});
-
+        const response = await api.patch(`order/orders/${id}/updateStock/`, { quantity, option });
+        return response.data;
     }catch(error){
         if (error.response) {
-      throw error.response.data;
-    } else {
-      throw { error: "Network error" };
+            if (error.response.status === 304) {
+                return { success: false, message: 'Not enough' };
+            }
+            throw error.response.data;
+        } else {
+            throw { error: "Network error" };
+        }
     }
-}
 };
-export const clearCartItems = async(id) =>{
 
+export const clearCartItems = async(id) =>{
     try{
         await api.delete("order/orders/delete_all/",{params: { user: id }});
     }catch(error){
@@ -51,4 +54,4 @@ export const clearCartItems = async(id) =>{
       throw { error: "Network error" };
     }
     }
-}  ;
+};

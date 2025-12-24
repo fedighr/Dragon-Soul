@@ -9,7 +9,7 @@ const LoadingSpinner = ({
 }) => {
   return (
     <div className={`loading-container ${size}`}>
-      <div className={`dragon-spinner ${color}`}>
+      <div className={`dragon-spinner ${color} ${size}`}>
         <div className="spinner-core"></div>
         <div className="spinner-ring"></div>
         <div className="spinner-glow"></div>
@@ -31,6 +31,16 @@ export const ButtonLoadingSpinner = ({
         <div className="spinner-dot"></div>
       </div>
       <span className="button-loading-text">{text}</span>
+    </div>
+  );
+};
+
+export const InlineLoader = ({ size = 'small' }) => {
+  return (
+    <div className={`inline-loader ${size}`}>
+      <div className="spinner-dot"></div>
+      <div className="spinner-dot"></div>
+      <div className="spinner-dot"></div>
     </div>
   );
 };

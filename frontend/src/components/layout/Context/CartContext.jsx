@@ -6,6 +6,7 @@ import {
   removeCartItem, 
   clearCartItems
 } from "../../../services/order";
+import {addCartItem} from "../../../services/store";
 
 const CartContext = createContext(null);
 
@@ -17,80 +18,65 @@ export const CartProvider = ({ children }) => {
   const [loadingItems, setLoadingItems] = useState({});
   const [isClearing, setIsClearing] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-
-  useEffect(() => {
-    const savedCart = localStorage.getItem('cart');
-    if (savedCart) {
-      try {
-        const parsed = JSON.parse(savedCart);
-        if (Array.isArray(parsed)) {
-          setCartItems(parsed);
-        }
-      } catch (err) {
-        console.error('Error loading cart from localStorage:', err);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cartItems));
-  }, [cartItems]);
+  const [stockErrors, setStockErrors] = useState({});
+  const [toastMessage, setToastMessage] = useState(null);
+  const [lastAddedItem, setLastAddedItem] = useState(null);
 
   const token = localStorage.getItem('access');
   const userId = token ? jwtDecode(token).id : null;
   
   const fetchCartItems = useCallback(async () => {
     if (!userId) return;
-    
-    setLoading(true);
     try {
       const response = await getCartItems(userId);
-      const items = Array.isArray(response) ? response : [];
-      setCartItems(items);
-      localStorage.setItem('cart', JSON.stringify(items));
+      setCartItems(Array.isArray(response) ? response : []);
       setError(null);
     } catch (err) {
       console.error('Error fetching cart items:', err);
       setError('Failed to load cart items');
-    } finally {
-      setLoading(false);
     }
   }, [userId]);
 
   useEffect(() => {
-    fetchCartItems();
-  }, [fetchCartItems]);
-
-  const updateQuantity = useCallback(async (itemId, color, size, newQuantity) => {
-    if (newQuantity < 0) return;
-    
-    if (newQuantity === 0) {
-      const itemToDelete = cartItems.find(item => 
-        item.id === itemId && item.color === color && item.size === size
-      );
-      setPendingDeleteItem(itemToDelete);
-      return;
+    if (userId) {
+      fetchCartItems();
     }
-    
+  }, [userId, fetchCartItems]);
+
+  const showToast = useCallback((text, type = 'success') => {
+    setToastMessage({ text, type });
+    setTimeout(() => {
+      setToastMessage(null);
+    }, 3500);
+  }, []);
+
+  const updateQuantity = useCallback(async (itemId, color, size, option) => {
     const itemKey = `${itemId}-${color}-${size}`;
     setLoadingItems(prev => ({ ...prev, [itemKey]: 'quantity' }));
+    setStockErrors(prev => ({ ...prev, [itemKey]: false }));
     
     try {
       if (userId) {
-        await updateCartItem(itemId, newQuantity, userId);
+        const response = await updateCartItem(itemId, 1, option);
+        
+        if (response && response.success === false) {
+          if (response.message === 'Not enough') {
+            setStockErrors(prev => ({ ...prev, [itemKey]: true }));
+            showToast('Not enough stock available', 'error');
+            setTimeout(() => {
+              setStockErrors(prev => ({ ...prev, [itemKey]: false }));
+            }, 2000);
+            return false;
+          }
+        }
       }
       
-      setCartItems(prev =>
-        prev.map(item =>
-          item.id === itemId && item.color === color && item.size === size
-            ? { ...item, quantity: newQuantity }
-            : item
-        )
-      );
-      setError(null);
+      await fetchCartItems();
+      return true;
     } catch (err) {
       console.error('Error updating quantity:', err);
-      setError('Failed to update quantity');
+      showToast('Failed to update quantity', 'error');
+      return false;
     } finally {
       setLoadingItems(prev => {
         const newState = { ...prev };
@@ -98,24 +84,26 @@ export const CartProvider = ({ children }) => {
         return newState;
       });
     }
-  }, [cartItems, userId]);
+  }, [userId, fetchCartItems, showToast]);
 
   const incrementQuantity = useCallback(async (itemId, color, size) => {
-    const item = cartItems.find(item => 
-      item.id === itemId && item.color === color && item.size === size
-    );
-    if (item) {
-      await updateQuantity(itemId, color, size, item.quantity + 1);
-    }
-  }, [cartItems, updateQuantity]);
+    return await updateQuantity(itemId, color, size, '+');
+  }, [updateQuantity]);
 
   const decrementQuantity = useCallback(async (itemId, color, size) => {
     const item = cartItems.find(item => 
       item.id === itemId && item.color === color && item.size === size
     );
-    if (item) {
-      await updateQuantity(itemId, color, size, item.quantity - 1);
+    
+    if (item && item.quantity === 1) {
+      const itemToDelete = cartItems.find(item => 
+        item.id === itemId && item.color === color && item.size === size
+      );
+      setPendingDeleteItem(itemToDelete);
+      return true;
     }
+    
+    return await updateQuantity(itemId, color, size, '-');
   }, [cartItems, updateQuantity]);
 
   const removeFromCart = useCallback(async (itemId, color, size) => {
@@ -127,16 +115,14 @@ export const CartProvider = ({ children }) => {
         await removeCartItem(itemId, userId);
       }
       
-      setCartItems(prev =>
-        prev.filter(item =>
-          !(item.id === itemId && item.color === color && item.size === size)
-        )
-      );
+      await fetchCartItems();
       setPendingDeleteItem(null);
-      setError(null);
+      showToast('Item removed from cart', 'success');
+      return true;
     } catch (err) {
       console.error('Error removing item from cart:', err);
-      setError('Failed to remove item from cart');
+      showToast('Failed to remove item', 'error');
+      return false;
     } finally {
       setLoadingItems(prev => {
         const newState = { ...prev };
@@ -144,41 +130,24 @@ export const CartProvider = ({ children }) => {
         return newState;
       });
     }
-  }, [userId]);
+  }, [userId, fetchCartItems, showToast]);
 
   const addToCart = useCallback(async (product) => {
     try {
       setLoading(true);
-      setCartItems(prev => {
-        const existingItem = prev.find(item => 
-          item.id === product.id && 
-          item.color === product.color && 
-          item.size === product.size
-        );
-
-        if (existingItem) {
-          return prev.map(item =>
-            item.id === product.id && item.color === product.color && item.size === product.size
-              ? { ...item, quantity: item.quantity + (product.quantity || 1) }
-              : item
-          );
-        } else {
-          return [...prev, { 
-            ...product, 
-            quantity: product.quantity || 1,
-            id: product.id || Date.now().toString(),
-            addedAt: Date.now()
-          }];
-        }
-      });
-      setError(null);
+      setLastAddedItem(product.name);
+      await addCartItem(product);
+      await fetchCartItems();
+      showToast(`${product.name} added to cart`, 'success');
+      setTimeout(() => setLastAddedItem(null), 2000);
     } catch (err) {
       console.error('Error adding item to cart:', err);
-      setError('Failed to add item to cart');
+      showToast('Failed to add item to cart', 'error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchCartItems, showToast]);
+
 
   const keepItem = useCallback(async () => {
     if (pendingDeleteItem) {
@@ -186,7 +155,7 @@ export const CartProvider = ({ children }) => {
         pendingDeleteItem.id,
         pendingDeleteItem.color,
         pendingDeleteItem.size,
-        1
+        '+'
       );
       setPendingDeleteItem(null);
     }
@@ -198,22 +167,22 @@ export const CartProvider = ({ children }) => {
       if (userId) {
         await clearCartItems(userId);
       }
-      setCartItems([]);
-      setError(null);
+      await fetchCartItems();
+      showToast('Cart cleared successfully', 'success');
     } catch (err) {
       console.error('Error clearing cart:', err);
-      setError('Failed to clear cart');
+      showToast('Failed to clear cart', 'error');
     } finally {
       setIsClearing(false);
     }
-  }, [userId]);
+  }, [userId, fetchCartItems, showToast]);
 
   const getTotalItems = useCallback(() => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   }, [cartItems]);
 
   const getTotalPrice = useCallback(() => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + item.price , 0);
   }, [cartItems]);
 
   const getItemLoadingState = useCallback((itemId, color, size, type = 'quantity') => {
@@ -230,6 +199,10 @@ export const CartProvider = ({ children }) => {
     setPendingDeleteItem(null);
   }, []);
 
+  const clearToastMessage = useCallback(() => {
+    setToastMessage(null);
+  }, []);
+
   const value = {
     cartItems,
     pendingDeleteItem,
@@ -238,6 +211,9 @@ export const CartProvider = ({ children }) => {
     loadingItems,
     isClearing,
     isCartOpen,
+    stockErrors,
+    toastMessage,
+    lastAddedItem,
     addToCart,
     updateQuantity,
     incrementQuantity,
@@ -251,7 +227,8 @@ export const CartProvider = ({ children }) => {
     openCart,
     closeCart,
     setPendingDeleteItem,
-    fetchCartItems
+    fetchCartItems,
+    clearToastMessage
   };
 
   return (

@@ -4,7 +4,8 @@ import {
   getCartItems, 
   updateCartItem,
   removeCartItem, 
-  clearCartItems
+  clearCartItems,
+  getAdminById
 } from "../../../services/order";
 import {addCartItem} from "../../../services/store";
 
@@ -21,6 +22,8 @@ export const CartProvider = ({ children }) => {
   const [stockErrors, setStockErrors] = useState({});
   const [toastMessage, setToastMessage] = useState(null);
   const [lastAddedItem, setLastAddedItem] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
 
   const token = localStorage.getItem('access');
   const userId = token ? jwtDecode(token).id : null;
@@ -36,6 +39,26 @@ export const CartProvider = ({ children }) => {
       setError('Failed to load cart items');
     }
   }, [userId]);
+
+    useEffect(()=>{
+    if(!userId) {
+      setIsAdmin(false);
+      return;
+
+    }
+    const verifyAdmin = async(userId)=>{
+      try{
+      const res = await getAdminById(userId);
+      setIsAdmin(res.is_Admin);
+      }catch(e){
+        console.log(e);
+              setIsAdmin(false);
+
+      }
+    }
+    verifyAdmin(userId)
+  },[userId]);
+
 
   useEffect(() => {
     if (userId) {
@@ -208,6 +231,7 @@ export const CartProvider = ({ children }) => {
     pendingDeleteItem,
     loading,
     error,
+    isAdmin,
     loadingItems,
     isClearing,
     isCartOpen,

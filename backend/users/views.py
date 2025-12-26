@@ -1,3 +1,6 @@
+from django.shortcuts import get_object_or_404
+from django.http import Http404
+from django.db import IntegrityError, DatabaseError
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -188,10 +191,34 @@ class AuthView(APIView):
                     return Response({'success': False, 'message': 'Password not changed'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             else:
                 return Response({'success': False, 'message': 'Invalid step'}, status=status.HTTP_400_BAD_REQUEST)
-        
         else:
             return Response({'success': False, 'message': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+
+    def get(self, request, action =None):    
+        if(action == "getAdminById"):
+            user_id = request.GET.get('userId')
+            print('user_id : ', user_id)
+            if(not user_id):
+                return Response({'success': False, 'message': 'Error'}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = get_object_or_404(User, id=user_id)
+                return Response({'success' : True, 'message' : 'State return with success', 'is_Admin' : user.is_admin}, status=status.HTTP_200_OK)
+                
+            except Http404:
+                return Response({'success' : False, 'message' : 'User not Found'}, status=status.HTTP_404_NOT_FOUND)
+                
+            except IntegrityError:
+                return Response({'success': False, 'message': 'Invalid request'}, status=status.HTTP_400_BAD_REQUEST)
             
+            except DatabaseError:
+                return Response({"success": False, "message": "A database error occurred. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                
+            except Exception as e:
+                return Response({"success": False, "message": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+        else:
+            return Response({'success': False, 'message': 'Invalid action'}, status=status.HTTP_400_BAD_REQUEST)
+                
     
     @staticmethod
     def SendVerificationEmail(email):

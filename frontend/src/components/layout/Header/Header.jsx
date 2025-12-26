@@ -19,6 +19,7 @@ const Header = ({ image }) => {
     openCart,
     closeCart,
     cartItems,
+    isAdmin,
     loading
   } = useCart();
   
@@ -197,6 +198,11 @@ const Header = ({ image }) => {
                       <Link to="/settings" className="dropdown-item" onClick={closeAllMenus}>
                         <i className="bi bi-gear"></i> Settings
                       </Link>
+                      {isAdmin &&(
+                      <Link to="/dashboard" className="dropdown-item" onClick={closeAllMenus}>
+                        <i class="bi bi-speedometer2"></i>Dashboard
+                      </Link>
+                      )}
                       <button
                         className="dropdown-item logout-btn"
                         onClick={handleLogout}
@@ -322,6 +328,11 @@ const Header = ({ image }) => {
                     <i className="bi bi-gear"></i>
                     <span>Settings</span>
                   </Link>
+                  {isAdmin &&(
+                  <Link to="/dashboard" className="quick-action-btn" onClick={closeAllMenus}>
+                        <i className="bi bi-speedometer2"></i>Dashboard
+                      </Link>
+                  )}
                   <button className="quick-action-btn logout" onClick={handleLogout}>
                     <i className="bi bi-box-arrow-right"></i>
                     <span>Logout</span>

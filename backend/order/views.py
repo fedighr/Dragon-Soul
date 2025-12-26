@@ -6,10 +6,10 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 from django.http import Http404
 
-from .models import Order
+from .models import Order, UserOrders
 from store.models import Product, ProductColor, ProductColorSize
 from users.models import User
-from .serializers import OrderSerializer
+from .serializers import OrderSerializer, UserOrdersSerializer
 from store.serializers import ProductColorSerializer, ProductColorSizeSerializer
 from rest_framework.pagination import PageNumberPagination
 
@@ -25,9 +25,15 @@ class OrderViewSet(ModelViewSet):
     def get_queryset(self):
         queryset = super().get_queryset()
         user_id = self.request.query_params.get('user')
+
         if user_id:
-            queryset = queryset.filter(user=user_id)
-        return queryset
+            user_order = UserOrders.objects.filter(user=user_id).first()
+            if user_order:
+                queryset = queryset.filter(user_orders=user_order.id)
+            else:
+                queryset = queryset.none()
+
+        return queryset.order_by('id')
 
     def get_color_and_size(self, product, color_name, size_value):
         color = get_object_or_404(ProductColor, product_id=product, color=color_name)
@@ -36,30 +42,49 @@ class OrderViewSet(ModelViewSet):
 
     @action(detail=False, methods=['post'])
     def addOrder(self, request):
-        serializer = OrderSerializer(data=request.data)
-        if not serializer.is_valid():
-            return Response({'success': False, 'message': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
-
-        data = serializer.validated_data
+        user = request.data.get('user_id')
+        data = request.data.copy()
+        print(data)
+        data.pop('user_id', None) 
+        serializer_product = OrderSerializer(data=data, partial=True)
+        if not serializer_product.is_valid():
+            return Response({'success': False, 'message': serializer_product.errors}, status=status.HTTP_400_BAD_REQUEST)
+        data = serializer_product.validated_data
         quantity = data["quantity"]
         product = data['product']
-        user = data['user']
         color_name = data["color"]
         size_value = data["size"]
         price_unit = data["price"]
 
         try:
             color, size = self.get_color_and_size(product, color_name, size_value)
+            user_details = get_object_or_404(User, id=user)
         except Http404:
             return Response({'success': False}, status=status.HTTP_404_NOT_FOUND)
         
         if(size.stock<=0):
            return Response({'success' : False, 'message' : 'No more product'}, status=status.HTTP_204_NO_CONTENT)
         
+        
+        with transaction.atomic():
+            order = UserOrders.objects.filter(user=user).first()
+
+            if not order:
+                serializer = UserOrdersSerializer(
+                    data={'total_price': price_unit * quantity, 'user': user},
+                    partial=True
+                )
+                serializer.is_valid(raise_exception=True)
+                order = serializer.save()
+            else:
+                order.total_price += price_unit * quantity
+                order.save(update_fields=['total_price'])
+
         size.stock -= quantity
         try:
             with transaction.atomic():
-                order_qs = Order.objects.filter(color=color.color, size=size.size, user=user, product=product)
+                order_qs = Order.objects.filter(color=color.color, size=size.size, user_orders=order.id, product=product)
+
                 if order_qs.exists():
                     order_instance = order_qs.first()
                     order_instance.quantity += quantity
@@ -67,12 +92,12 @@ class OrderViewSet(ModelViewSet):
                     order_instance.save()
                     size.save()
                     return Response({'success': True}, status=status.HTTP_200_OK)
-                serializer.save()
+                serializer_product.save(user_orders=order)
                 size.save()
                 return Response({"success": True}, status=status.HTTP_201_CREATED)
 
         except IntegrityError:
-            return Response({"success": False, "message": "Cannot delete the order due to database constraints."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"success": False, "message": "Cannot add the order due to database constraints."}, status=status.HTTP_400_BAD_REQUEST)
         except DatabaseError:
             return Response({"success": False, "message": "A database error occurred. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         except Exception as e:

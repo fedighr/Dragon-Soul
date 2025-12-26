@@ -4,6 +4,7 @@ from .models import Product
 from .serializers import ProductSerializer
 from rest_framework.viewsets import ModelViewSet
 import json
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class ProductListView(generics.ListAPIView):
     serializer_class = ProductSerializer
@@ -47,7 +48,6 @@ class ProductListView(generics.ListAPIView):
                     query = query.filter(
                         productcolor__productcolorsize__size__in=sizes
                     ).distinct()
-                    #query = query.filter( productcolor__productcolorsize__stock__gt=0)
                 if colors:
                     colors=self.convert_color(colors)
                     print(colors)
@@ -99,7 +99,23 @@ class ProductListView(generics.ListAPIView):
     
 class AddProduct(ModelViewSet):
     queryset = Product.objects.all()
-    serializer_class = ProductSerializer    
+    serializer_class = ProductSerializer
+    parser_classes = [MultiPartParser, FormParser]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=partial, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        return Response(serializer.data)
 
 class getProductById(ModelViewSet):
     queryset = Product.objects.all()

@@ -55,3 +55,16 @@ export const clearCartItems = async(id) =>{
     }
     }
 };
+
+export const getAdminById = async(userId)=>{
+    try{
+        const response = await api.get("/users/getAdminById/", {params: { userId }});
+        return response.data;
+    }catch(error){
+        if (error.response) {
+      throw error.response.data;
+    } else {
+      throw { error: "Network error" };
+    }
+    }
+}

@@ -138,7 +138,7 @@ const Login = () => {
 
               <div className="login-links">
                 <Link to="/reset-password" className="login-link">Forgot your password?</Link>
-                <Link to="/SignUp" className="login-link register-link">
+                <Link to="/signup" className="login-link register-link">
                   Don't have an account? <span>Create one</span>
                 </Link>
               </div>

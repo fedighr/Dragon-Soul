@@ -11,6 +11,7 @@ import PrivateRoute from "./utils/PrivateRoute.jsx";
 import Header from "./components/layout/Header/Header.jsx";
 import CartPage from "./pages/Cart/Cart.jsx";
 import Cart from "./components/layout/Cart/CartSlideIn.jsx";
+import Dashboard from "./pages/Dashboard/Dashboard.jsx";
 import CartTest from "./CartTest.jsx";
 import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "./components/layout/Context/CartContext.jsx";
@@ -59,6 +60,15 @@ function AppWrapper() {
           element={
             <PrivateRoute>
               <CartPage />
+            </PrivateRoute>
+          }
+        />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
             </PrivateRoute>
           }
         />

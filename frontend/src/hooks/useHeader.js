@@ -5,7 +5,8 @@ import {
   /*addCartItem, */
   updateCartItem,
   removeCartItem, 
-  clearCartItems
+  clearCartItems,
+  getAdminById
 } from "../services/order"; 
 
 export const useHeader = () => {
@@ -20,10 +21,12 @@ export const useHeader = () => {
   const [error, setError] = useState(null);
   const [loadingItems, setLoadingItems] = useState({});
   const [isClearing, setIsClearing] = useState(false); 
+  const [isAdmin, setIsAdmin] = useState(false);
   
   const token = localStorage.getItem('access');
   const userId = token ? jwtDecode(token).id : null;
   
+
 
   useEffect(() => {
     const fetchCartItems = async () => {
@@ -239,6 +242,7 @@ export const useHeader = () => {
   return {
     cartItems,
     isCartOpen,
+    isAdmin,
     pendingDeleteItem,
     loading,
     error,

@@ -1,9 +1,13 @@
 from rest_framework import generics, status
+from django.db import IntegrityError, DatabaseError
 from rest_framework.response import Response
-from .models import Product
-from .serializers import ProductSerializer
+from rest_framework.decorators import action
+from .models import Product, ProductColorSize
+from .serializers import ProductSerializer, ProductColorSizeSerializer
 from rest_framework.viewsets import ModelViewSet
 import json
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.parsers import MultiPartParser, FormParser
 
 class ProductListView(generics.ListAPIView):
@@ -115,7 +119,7 @@ class AddProduct(ModelViewSet):
         serializer = self.get_serializer(instance, data=request.data, partial=partial, context={'request': request})
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
-        return Response(serializer.data)
+        return Response(serializer.data)  
 
 class getProductById(ModelViewSet):
     queryset = Product.objects.all()
@@ -126,3 +130,57 @@ class getProductById(ModelViewSet):
         id = request.GET.get('id')
         query = Product.objects.filter(id=id)
         return query
+    
+class HandleProducts(ModelViewSet):
+    queryset = ProductColorSize.objects.all()
+    serializer_class = ProductColorSizeSerializer
+
+    @action(detail=False, methods=['patch'])
+    def UpdateStock(self, request):
+        quantity = request.data.get('quantity')
+        option = request.data.get('option')
+        id = request.data.get('id')
+
+        if quantity is None or option is None or id is None:
+            return Response({'success': False, 'message': 'Error: missing fields'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            quantity = int(quantity)
+            size = get_object_or_404(ProductColorSize, pk=id)
+
+            if option == "add":
+                size.stock += quantity
+            elif option == "decrease":
+                size.stock -= quantity
+            else:
+                return Response({'success': False, 'message': 'Error: invalid option'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            size.save()
+            serializer = ProductColorSizeSerializer(size)
+            return Response({'success': True, 'message': 'Updated successfully', 'data': serializer.data}, status=status.HTTP_200_OK)
+
+        except IntegrityError:
+            return Response({"success": False, "message": "Database constraints error."}, status=status.HTTP_400_BAD_REQUEST)
+        except DatabaseError:
+            return Response({"success": False, "message": "Database error."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({"success": False, "message": f"Unexpected error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+    @action(detail=True, methods=['delete'])
+    def DeleteProduct(self, request, pk=None):
+        if (pk == None):
+            return Response({'success': False, 'message': 'Error: missing fields'}, status=status.HTTP_400_BAD_REQUEST) 
+
+        try:
+            product = get_object_or_404(Product, pk=pk)
+            product.delete()
+            return Response({'success' : True, 'message' : 'Deleted with success'},status=status.HTTP_200_OK)
+          
+        except Http404:
+            return Response({'success': False, 'message': 'Data not found'}, status=status.HTTP_404_NOT_FOUND)
+        except IntegrityError:
+            return Response({"success": False, "message": "Cannot delete the product due to database constraints."}, status=status.HTTP_400_BAD_REQUEST)
+        except DatabaseError:
+            return Response({"success": False, "message": "A database error occurred. Please try again later."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        except Exception as e:
+            return Response({"success": False, "message": f"An unexpected error occurred: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

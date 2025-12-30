@@ -13,7 +13,7 @@ class UserSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'password', 'phone_number', 'gender','verification_code', 'code_expired_date']
+        fields = ['first_name', 'last_name', 'email', 'password', 'phone_number', 'gender','verification_code', 'code_expired_date', 'is_admin', 'is_verified']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -23,13 +23,31 @@ class UserSerializer(serializers.ModelSerializer):
         user = User.objects.create(**validated_data)
         return user
     
+    def update(self, instance, validated_data):
+        password = validated_data.pop("password", None)
+
+        instance = super().update(instance, validated_data)
+
+        if password:
+            instance.password = make_password(password)
+            instance.save(update_fields=["password"])
+
+        return instance
+
+    
     def validate_email(self, value):
-        if User.objects.filter(email=value, is_verified=True).exists():
+        qs = User.objects.filter(email=value, is_verified=True)
+        if self.instance:  
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise serializers.ValidationError("Email already used")
         return value
 
-    def validate_phone(self, value):
-        if User.objects.filter(phone=value, is_phone_verified=True).exists():
+    def validate_phone_number(self, value):
+        qs = User.objects.filter(phone_number=value, is_verified=True)
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise serializers.ValidationError("Phone already used")
         return value
     

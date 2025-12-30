@@ -1,4 +1,24 @@
 import React, { useState } from 'react'; 
+import { Line, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Tooltip,
+  Legend
+} from "chart.js";
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Tooltip,
+  Legend
+);
 import { 
   BarChart3, ShoppingBag, Users, Package, Bell, Settings,
   TrendingUp, DollarSign, ShoppingCart, UserPlus, AlertTriangle,
@@ -8,26 +28,32 @@ import {
   Truck, Shield as ShieldIcon, Banknote as Cash, Grid,
   List, TrendingDown, Loader, LogOut, Maximize,
   ChevronsRight, ChevronsLeft, Palette, Ruler, RefreshCw,
-  Save, PackageOpen, UserMinus, UserCheck, Box
+  Save, PackageOpen, UserMinus, UserCheck, Box, Minus 
 } from 'lucide-react';
 import './Dashboard.css';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import Footer from "../../components/layout/Footer/Footer.jsx";
 import BackToTopButton from "../../components/common/button/BackToTopButton.jsx";
 import { useDashboard } from '../../hooks/useDashboard';
 
 const Dashboard = () => {
   const {
+    activeActionId,
     handleProductChange,
     handleColorChange,
     newProductData,
     sizeOptions ,
+    handleMarkNotificationRead,
     setNewProductData,
     colorOptions,
+    analyticsChartData,
     validateProductData,
     setFormErrors,
     removeColor,
     handleAddStockClick,
     setStockData,
+    newCustomerData, setNewCustomerData,
     stockData,
     removeSize,
     handleSizeChange,
@@ -45,6 +71,7 @@ const Dashboard = () => {
     orders,
     selectedProduct,
     orderFilter,
+    showProductDetails, setShowProductDetails,
     setOrderFilter,
     orderSearch,
     setOrderSearch,
@@ -106,7 +133,6 @@ const Dashboard = () => {
     editingOrder,
     editingProduct,
     editingCustomer,
-    showProductDetails,
     stockingProduct,
     modalLoading,
     handleViewOrderDetails,
@@ -142,7 +168,11 @@ const Dashboard = () => {
     categories,
     chartTypes: chartTypesData,
     dateRanges,
-    settingTabs: settingTabsData
+    settingTabs: settingTabsData,
+      confirmModal,
+    closeConfirm,
+    handleConfirm,
+    analyticsMetrics
   } = useDashboard();
 
   const [newOrderData, setNewOrderData] = useState({
@@ -156,15 +186,6 @@ const Dashboard = () => {
     paymentMethod: 'card'
   });
 
-  const [newCustomerData, setNewCustomerData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    address: '',
-    isAdmin: false
-  });
-
   const sections = [
     { id: 'overview', label: 'Dashboard', icon: <BarChart3 size={20} /> },
     { id: 'orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
@@ -174,13 +195,7 @@ const Dashboard = () => {
     { id: 'notifications', label: 'Notifications', icon: <Bell size={20} />, badge: (notifications || []).filter(n => !n?.read).length },
     { id: 'settings', label: 'Settings', icon: <Settings size={20} /> },
   ];
-  
-  const chartTypes = [
-    { id: 'sales', label: 'Sales', icon: <BarChart3 size={16} /> },
-    { id: 'revenue', label: 'Revenue', icon: <TrendingUp size={16} /> },
-    { id: 'customers', label: 'Customers', icon: <Users size={16} /> },
-    { id: 'traffic', label: 'Traffic', icon: <Globe size={16} /> },
-  ];
+
   
   const settingTabs = [
     { id: 'general', label: 'General', icon: <Settings size={16} /> },
@@ -240,12 +255,15 @@ const Dashboard = () => {
 
   const handleEditCustomerClick = (customer) => {
     setNewCustomerData({
+      id: customer.id,
       firstName: customer.first_name || '',
       lastName: customer.last_name || '',
       email: customer.email || '',
       phone: customer.phone_number || '',
-      address: customer.address || '',
-      isAdmin: customer.is_admin || false
+      gender: customer.gender ||'',
+      isAdmin: customer.is_admin || false,
+      old_email: customer.email || '',
+      old_phone: customer.phone_number || '',
     });
     handleOpenEditCustomerModal(customer);
   };
@@ -326,6 +344,36 @@ const Dashboard = () => {
       </div>
     </div>
   );
+  const ConfirmationModal = () => {
+  if (!confirmModal.show) return null;
+
+  return (
+    <div className="ds-modal-overlay" onClick={closeConfirm}>
+      <div className="ds-modal ds-confirm-modal" onClick={(e) => e.stopPropagation()}>
+        <div className="ds-modal-header">
+          <h3>{confirmModal.title}</h3>
+          <button className="ds-modal-close" onClick={closeConfirm}>
+            <X size={20} />
+          </button>
+        </div>
+        <div className="ds-modal-body">
+          <p>{confirmModal.message}</p>
+        </div>
+        <div className="ds-modal-footer">
+          <button className="ds-btn ds-btn-secondary" onClick={closeConfirm}>
+            {confirmModal.cancelText}
+          </button>
+          <button 
+            className={`ds-btn ${confirmModal.isDangerous ? 'ds-btn-danger' : 'ds-btn-primary'}`}
+            onClick={handleConfirm}
+          >
+            {confirmModal.confirmText}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   const renderEditOrderModal = () => (
     <div className="ds-modal-overlay" onClick={() => setShowEditOrderModal(false)}>
@@ -645,7 +693,7 @@ const Dashboard = () => {
           console.log("Validation errors:", errors);
           if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
-            alert("Please fix validation errors");
+            toast.error("Please fix validation errors");
             return;
           }
           setFormErrors({});
@@ -676,7 +724,6 @@ const Dashboard = () => {
               <label>First Name</label>
               <input 
                 type="text" 
-                value={newCustomerData.firstName}
                 onChange={(e) => setNewCustomerData({...newCustomerData, firstName: e.target.value})}
                 placeholder="Enter first name"
               />
@@ -685,7 +732,6 @@ const Dashboard = () => {
               <label>Last Name</label>
               <input 
                 type="text" 
-                value={newCustomerData.lastName}
                 onChange={(e) => setNewCustomerData({...newCustomerData, lastName: e.target.value})}
                 placeholder="Enter last name"
               />
@@ -695,7 +741,6 @@ const Dashboard = () => {
             <label>Email</label>
             <input 
               type="email" 
-              value={newCustomerData.email}
               onChange={(e) => setNewCustomerData({...newCustomerData, email: e.target.value})}
               placeholder="Enter email"
             />
@@ -704,17 +749,53 @@ const Dashboard = () => {
             <label>Phone</label>
             <input 
               type="text" 
-              value={newCustomerData.phone}
               onChange={(e) => setNewCustomerData({...newCustomerData, phone: e.target.value})}
               placeholder="Enter phone number"
             />
+          </div>
+          <div className="ds-form-group">
+            <label>Password</label>
+            <input 
+              type="text" 
+              onChange={(e) => setNewCustomerData({...newCustomerData, password: e.target.value})}
+              placeholder="Enter password"
+            />
+          </div>
+          <div className="ds-form-row">
+            <div className="ds-form-group">
+              <label className="ds-form-label">Gender</label>
+              <div className="ds-radio-group">
+                <label className="ds-radio-label">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="M"
+                    onChange={(e) => setNewCustomerData({ ...newCustomerData, gender: e.target.value })}
+                    className="ds-radio-input"
+                  />
+                  <span className="ds-radio-custom"></span>
+                  <span className="ds-radio-text">Male</span>
+                </label>
+
+                <label className="ds-radio-label">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="F"
+                    onChange={(e) => setNewCustomerData({ ...newCustomerData, gender: e.target.value })}
+                    className="ds-radio-input"
+                  />
+                  <span className="ds-radio-custom"></span>
+                  <span className="ds-radio-text">Female</span>
+                </label>
+              </div>
+            </div>
           </div>
           <div className="ds-form-group">
             <label>Make Administrator</label>
             <label className="ds-switch">
               <input 
                 type="checkbox" 
-                checked={newCustomerData.isAdmin}
                 onChange={(e) => setNewCustomerData({...newCustomerData, isAdmin: e.target.checked})}
               />
               <span className="ds-slider"></span>
@@ -739,6 +820,7 @@ const Dashboard = () => {
   );
 
   const renderEditCustomerModal = () => (
+    
     <div className="ds-modal-overlay" onClick={() => setShowEditCustomerModal(false)}>
       <div className="ds-modal" onClick={(e) => e.stopPropagation()}>
         <div className="ds-modal-header">
@@ -754,7 +836,7 @@ const Dashboard = () => {
               <input 
                 type="text" 
                 value={newCustomerData.firstName}
-                onChange={(e) => setNewCustomerData({...newCustomerData, firstName: e.target.value})}
+                onChange={(e) =>setNewCustomerData({...newCustomerData, firstName: e.target.value})}
               />
             </div>
             <div className="ds-form-group">
@@ -762,7 +844,7 @@ const Dashboard = () => {
               <input 
                 type="text" 
                 value={newCustomerData.lastName}
-                onChange={(e) => setNewCustomerData({...newCustomerData, lastName: e.target.value})}
+                onChange={(e) =>setNewCustomerData({...newCustomerData, lastName: e.target.value})}
               />
             </div>
           </div>
@@ -771,16 +853,63 @@ const Dashboard = () => {
             <input 
               type="email" 
               value={newCustomerData.email}
-              onChange={(e) => setNewCustomerData({...newCustomerData, email: e.target.value})}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNewCustomerData(prev => ({
+                  ...prev,
+                  old_email: prev.email,
+                  email: value
+                }));
+              }}
             />
           </div>
+
           <div className="ds-form-group">
             <label>Phone</label>
             <input 
               type="text" 
               value={newCustomerData.phone}
-              onChange={(e) => setNewCustomerData({...newCustomerData, phone: e.target.value})}
+              onChange={(e) => {
+                const value = e.target.value;
+                setNewCustomerData(prev => ({
+                  ...prev,
+                  old_phone: prev.phone,
+                  phone: value
+                }));
+              }}
             />
+          </div>
+
+          <div className="ds-form-row">
+            <div className="ds-form-group">
+              <label className="ds-form-label">Gender</label>
+              <div className="ds-radio-group">
+                <label className="ds-radio-label">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value="M"
+                    checked={newCustomerData.gender === "M"}
+                    onChange={(e) => setNewCustomerData({ ...newCustomerData, gender: e.target.value })}
+                    className="ds-radio-input"
+                  />
+                  <span className="ds-radio-custom"></span>
+                  <span className="ds-radio-text">Male</span>
+                </label>
+
+                <label className="ds-radio-label">
+                  <input
+                    type="radio"
+                    name="gender"
+                    value={newCustomerData.gender === "F"}
+                    onChange={(e) => setNewCustomerData({ ...newCustomerData, gender: e.target.value })}
+                    className="ds-radio-input"
+                  />
+                  <span className="ds-radio-custom"></span>
+                  <span className="ds-radio-text">Female</span>
+                </label>
+              </div>
+            </div>
           </div>
           <div className="ds-form-group">
             <label>Administrator Status</label>
@@ -811,68 +940,173 @@ const Dashboard = () => {
     </div>
   );
 
-  const renderAddStockModal = () => (
-    <div className="ds-modal-overlay" onClick={() => setShowAddStockModal(false)}>
-      <div className="ds-modal" onClick={(e) => e.stopPropagation()}>
-        <div className="ds-modal-header">
-          <h3>Add Stock - {stockingProduct?.name || 'Product'}</h3>
-          <button className="ds-modal-close" onClick={() => setShowAddStockModal(false)}>
-            <X size={20} />
-          </button>
-        </div>
-        <div className="ds-modal-body">
-          <div className="ds-form-group">
-            <label>Color</label>
-            <select 
-              value={stockData.color}
-              onChange={(e) => setStockData({...stockData, color: e.target.value})}
-            >
-              <option value="">Select color</option>
-              {stockingProduct?.productcolor_set?.map(color => (
-                <option key={color.id} value={color.color}>{color.color}</option>
-              ))}
-            </select>
-          </div>
-          <div className="ds-form-group">
-            <label>Size</label>
-            <select 
-              value={stockData.size}
-              onChange={(e) => setStockData({...stockData, size: e.target.value})}
-            >
-              <option value="">Select size</option>
-              {stockingProduct?.productcolor_set?.map(color => (
-                <option key={color.id} value={color.color}>{color.color}</option>
-              ))}
-            </select>
-          </div>
-          <div className="ds-form-group">
-            <label>Quantity</label>
-            <input 
-              type="number" 
-              value={stockData.quantity}
-              onChange={(e) => setStockData({...stockData, quantity: parseInt(e.target.value) || 0})}
-              placeholder="Enter quantity"
-              min="1"
-            />
-          </div>
+  const renderAddStockModal = () => {
+    const selectedColorData = stockingProduct?.productcolor_set?.find(
+      c => c.id === stockData.colorId
+    );
+    
+    const selectedSizeData = selectedColorData?.productcolorsize_set?.find(
+      s => s.id === stockData.sizeId
+    );
 
-        </div>
-        <div className="ds-modal-footer">
-          <button className="ds-btn ds-btn-secondary" onClick={() => setShowAddStockModal(false)}>
-            Cancel
-          </button>
-          <button 
-            className="ds-btn ds-btn-primary" 
-            onClick={() => handleAddStock(stockingProduct?.id, stockData)}
-            disabled={modalLoading}
-          >
-            {modalLoading ? <Loader size={16} className="ds-spinner" /> : <PackageOpen size={16} />}
-            {modalLoading ? 'Adding...' : 'Add Stock'}
-          </button>
+    return (
+      <div className="ds-modal-overlay" onClick={() => setShowAddStockModal(false)}>
+        <div className="ds-modal ds-modal-stock" onClick={(e) => e.stopPropagation()}>
+          <div className="ds-modal-header">
+            <h3>Manage Stock</h3>
+            <button className="ds-modal-close" onClick={() => setShowAddStockModal(false)}>
+              <X size={20} />
+            </button>
+          </div>
+          <div className="ds-modal-body">
+            <div className="ds-stock-product-info">
+              <h4>{stockingProduct?.name}</h4>
+              <p className="ds-stock-product-price">${stockingProduct?.price}</p>
+            </div>
+
+            <div className="ds-form-group">
+              <label>Select Color</label>
+              <select 
+                value={stockData.colorId}
+                onChange={(e) => setStockData({
+                  ...stockData, 
+                  colorId: parseInt(e.target.value) || '',
+                  sizeId: '',
+                  quantity: 0
+                })}
+                className="ds-select"
+              >
+                <option value="">Choose a color</option>
+                {stockingProduct?.productcolor_set?.map((color) => (
+                  <option key={color.id} value={color.id}>
+                    {color.color}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {stockData.colorId && selectedColorData && (
+              <>
+                <div className="ds-form-group">
+                  <label>Select Size</label>
+                  <select 
+                    value={stockData.sizeId}
+                    onChange={(e) => setStockData({
+                      ...stockData, 
+                      sizeId: parseInt(e.target.value) || '',
+                      quantity: 0
+                    })}
+                    className="ds-select"
+                  >
+                    <option value="">Choose a size</option>
+                    {selectedColorData.productcolorsize_set?.map((sizeData) => (
+                      <option key={sizeData.id} value={sizeData.id}>
+                        {sizeData.size} (Current stock: {sizeData.stock})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {stockData.sizeId && selectedSizeData && (
+                  <div className="ds-stock-current-info">
+                    <div className="ds-stock-info-item">
+                      <span className="ds-stock-label">Current Stock:</span>
+                      <span className="ds-stock-value">{selectedSizeData.stock} units</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {stockData.sizeId && (
+              <>
+                <div className="ds-form-group">
+                  <label>Action</label>
+                  <div className="ds-stock-action-buttons">
+                    <button
+                      type="button"
+                      className={`ds-stock-action-btn ${stockData.action === 'add' ? 'active' : ''}`}
+                      onClick={() => setStockData({...stockData, action: 'add', quantity: 0})}
+                    >
+                      <Plus size={18} />
+                      Add Stock
+                    </button>
+                    <button
+                      type="button"
+                      className={`ds-stock-action-btn ${stockData.action === 'decrease' ? 'active' : ''}`}
+                      onClick={() => setStockData({...stockData, action: 'decrease', quantity: 0})}
+                    >
+                      <Minus size={18} />
+                      Decrease Stock
+                    </button>
+                  </div>
+                </div>
+
+            <div className="ds-form-group">
+              <label>Quantity to {stockData.action === 'add' ? 'Add' : 'Decrease'}</label>
+              <input 
+                type="number" 
+                value={stockData.quantity}
+                onChange={(e) => {
+                  const value = parseInt(e.target.value) || 0;
+                  setStockData({
+                    ...stockData, 
+                    quantity: value
+                  });
+                }}
+                placeholder={`Enter quantity to ${stockData.action === 'add' ? 'add' : 'decrease'}`}
+                min="0"
+                className="ds-input"
+              />
+              {stockData.quantity > 0 && selectedSizeData && (
+                <>
+                  <p className={`ds-stock-preview ${stockData.action === 'decrease' ? 'decrease' : ''}`}>
+                    New stock will be: <strong>
+                      {stockData.action === 'add' 
+                        ? selectedSizeData.stock + stockData.quantity 
+                        : selectedSizeData.stock - stockData.quantity
+                      }
+                    </strong> units
+                  </p>
+                  {stockData.action === 'decrease' && stockData.quantity > selectedSizeData?.stock && (
+                    <p className="ds-stock-error">
+                      Cannot decrease by more than current stock ({selectedSizeData.stock} units)
+                    </p>
+                  )}
+                </>
+              )}
+            </div>
+              </>
+            )}
+          </div>
+          <div className="ds-modal-footer">
+            <button 
+              className="ds-btn ds-btn-secondary" 
+              onClick={() => setShowAddStockModal(false)}
+              disabled={modalLoading}
+            >
+              Cancel
+            </button>
+            <button 
+              className="ds-btn ds-btn-primary" 
+              onClick={() => handleAddStock(stockingProduct?.id, stockData)}
+              disabled={
+                modalLoading || 
+                !stockData.colorId || 
+                !stockData.sizeId || 
+                !stockData.action ||
+                stockData.quantity <= 0 ||
+                (stockData.action === 'decrease' && stockData.quantity > selectedSizeData?.stock)
+              }
+            >
+              {modalLoading ? <Loader size={16} className="ds-spinner" /> : <PackageOpen size={16} />}
+              {modalLoading ? 'Updating...' : `${stockData.action === 'add' ? 'Add' : 'Decrease'} Stock`}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   if (isLoading && !dataLoaded[activeSection]) {
     return (
@@ -943,7 +1177,7 @@ const Dashboard = () => {
                     <TrendingUp size={24} />
                   </div>
                 </div>
-                <div className="ds-stat-value">${homeInfo?.Month_Sales ?? 0}</div>
+                <div className="ds-stat-value">{homeInfo?.Month_Sales ?? 0}DT</div>
                 <div className="ds-stat-trend ds-trend-up">
                   <TrendingUp size={16} />
                   <span>+{homeInfo?.Month_Percentage ?? 0}%</span>
@@ -1082,7 +1316,7 @@ const Dashboard = () => {
                           </div>
                         </div>
                         <div className="ds-order-details">
-                          <div className="ds-order-total">${order.amount || order.orders__total_price || 0}</div>
+                          <div className="ds-order-total">{order.amount || order.orders__total_price || 0}DT</div>
                           <div className={`ds-order-status ds-${order.status || 'pending'}`}>
                             {order.status === 'pending' && <Clock size={12} />}
                             {order.status === 'processing' && <Loader size={12} />}
@@ -1467,7 +1701,7 @@ const Dashboard = () => {
                       <div className="ds-product-card-body">
                         <h4 className="ds-product-name">{product.name || 'Unknown'}</h4>
                         <div className="ds-product-category">{product.category || 'Uncategorized'}</div>
-                        <div className="ds-product-price">${product.price || 0}</div>
+                        <div className="ds-product-price">{product.price || 0}DT</div>
                         <div className="ds-product-colors-sizes">
                           {product.productcolor_set && product.productcolor_set.length > 0 && (
                             <div className="ds-colors-section">
@@ -1583,7 +1817,7 @@ const Dashboard = () => {
                           </td>
                           <td>{product.category || 'N/A'}</td>
                           <td>
-                            <strong>${(product.price || 0)}</strong>
+                            <strong>{(product.price || 0)}DT</strong>
                           </td>
                           <td>
                             <div className="ds-stock-cell">
@@ -1803,7 +2037,7 @@ const Dashboard = () => {
                             </button>
                             <button 
                               className="ds-action-btn ds-admin"
-                              onClick={() => handleToggleAdmin(customer.id)}
+                              onClick={() => handleToggleAdmin(customer.id, !customer.is_admin)}
                               title={customer.is_admin ? "Remove Admin" : "Make Admin"}
                             >
                               {customer.is_admin ? <UserMinus size={16} /> : <UserCheck size={16} />}
@@ -1877,141 +2111,121 @@ const Dashboard = () => {
           </div>
         );
       
-      case 'analytics':
-        return (
-          <div className="ds-analytics-content">
-            <div className="ds-analytics-header">
-              <div className="ds-view-selector">
-                <button 
-                  className={`ds-view-option ${analyticsView === 'overview' ? 'ds-active' : ''}`}
-                  onClick={() => setAnalyticsView('overview')}
-                >
-                  Overview
-                </button>
-                <button 
-                  className={`ds-view-option ${analyticsView === 'sales' ? 'ds-active' : ''}`}
-                  onClick={() => setAnalyticsView('sales')}
-                >
-                  Sales
-                </button>
-                <button 
-                  className={`ds-view-option ${analyticsView === 'customers' ? 'ds-active' : ''}`}
-                  onClick={() => setAnalyticsView('customers')}
-                >
-                  Customers
-                </button>
-                <button 
-                  className={`ds-view-option ${analyticsView === 'traffic' ? 'ds-active' : ''}`}
-                  onClick={() => setAnalyticsView('traffic')}
-                >
-                  Traffic
-                </button>
-              </div>
-              <div className="ds-date-range">
-                <Calendar size={18} />
-                <select>
-                  <option>Last 30 days</option>
-                  <option>Last 90 days</option>
-                  <option>This year</option>
-                </select>
-              </div>
-            </div>
-            
-            <div className="ds-analytics-grid">
-              <div className="ds-metric-card">
-                <div className="ds-metric-header">
-                  <h4>Total Sales</h4>
-                  <div className="ds-metric-trend ds-trend-up">
-                    <TrendingUp size={16} />
-                    <span>+0%</span>
-                  </div>
+        case 'analytics':
+          return (
+            <div className="ds-analytics-content">
+              <div className="ds-analytics-header">
+                <div className="ds-view-selector">
+                  <button
+                    className={`ds-btn ${chartType === "sales" ? "ds-active" : ""}`}
+                    onClick={() => setChartType("sales")}
+                    disabled={isLoading}
+                  >
+                    Sales
+                  </button>
+                  <button
+                    className={`ds-btn ${chartType === "revenue" ? "ds-active" : ""}`}
+                    onClick={() => setChartType("revenue")}
+                    disabled={isLoading}
+                  >
+                    Revenue
+                  </button>
+                  <button
+                    className={`ds-btn ${chartType === "customers" ? "ds-active" : ""}`}
+                    onClick={() => setChartType("customers")}
+                    disabled={isLoading}
+                  >
+                    Customers
+                  </button>
                 </div>
-                <div className="ds-metric-value">$0</div>
-                <div className="ds-metric-chart">
-                  <div className="ds-mini-chart">
-                    {[30, 50, 70, 60, 80, 90, 85].map((h, i) => (
-                      <div key={i} className="ds-mini-bar" style={{ height: `${h}%` }}></div>
-                    ))}
-                  </div>
+                <div className="ds-date-range">
+                  <Calendar size={18} />
+                  <select 
+                    value={dateRange} 
+                    onChange={(e) => setDateRange(e.target.value)}
+                    disabled={isLoading}
+                  >
+                    <option value="week">Last 7 days</option>
+                    <option value="month">Last 30 days</option>
+                    <option value="year">Last 12 months</option>
+                  </select>
                 </div>
               </div>
               
-              <div className="ds-metric-card">
-                <div className="ds-metric-header">
-                  <h4>Conversion Rate</h4>
-                  <div className="ds-metric-trend ds-trend-up">
-                    <TrendingUp size={16} />
-                    <span>+0%</span>
+              <div className="ds-analytics-grid">
+                <div className="ds-metric-card">
+                  <div className="ds-metric-header">
+                    <h4>Total {chartType === 'customers' ? 'Customers' : 'Sales'}</h4>
+                    <div className={`ds-metric-trend ${analyticsMetrics.salesTrend >= 0 ? 'ds-trend-up' : 'ds-trend-down'}`}>
+                      {analyticsMetrics.salesTrend >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                      <span>{analyticsMetrics.salesTrend >= 0 ? '+' : ''}{analyticsMetrics.salesTrend.toFixed(1)}%</span>
+                    </div>
+                  </div>
+                  <div className="ds-metric-value">
+                    {chartType === 'customers' ? analyticsMetrics.totalSales.toFixed(0) : `${analyticsMetrics.totalSales.toFixed(2)}DT`}
                   </div>
                 </div>
-                <div className="ds-metric-value">0%</div>
-                <div className="ds-metric-progress">
-                  <div className="ds-progress-bar">
-                    <div className="ds-progress-fill" style={{ width: '0%' }}></div>
+                
+                <div className="ds-metric-card">
+                  <div className="ds-metric-header">
+                    <h4>Average Value</h4>
+                    <div className={`ds-metric-trend ${analyticsMetrics.avgOrderTrend >= 0 ? 'ds-trend-up' : 'ds-trend-down'}`}>
+                      {analyticsMetrics.avgOrderTrend >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                      <span>{analyticsMetrics.avgOrderTrend >= 0 ? '+' : ''}{analyticsMetrics.avgOrderTrend.toFixed(1)}%</span>
+                    </div>
                   </div>
+                  <div className="ds-metric-value">{analyticsMetrics.avgOrderValue.toFixed(2)}DT</div>
                 </div>
               </div>
               
-              <div className="ds-metric-card">
-                <div className="ds-metric-header">
-                  <h4>Average Order Value</h4>
-                  <div className="ds-metric-trend ds-trend-down">
-                    <TrendingDown size={16} />
-                    <span>-0%</span>
-                  </div>
+              <div className="ds-main-chart">
+                <div className="ds-chart-header">
+                  <h3>
+                    {chartType === "sales" ? "Sales Trends" : 
+                    chartType === "revenue" ? "Revenue Trends" : "Customer Growth"}
+                  </h3>
                 </div>
-                <div className="ds-metric-value">$0</div>
-                <div className="ds-metric-change">From $0</div>
-              </div>
-              
-              <div className="ds-metric-card">
-                <div className="ds-metric-header">
-                  <h4>Returning Customers</h4>
-                  <div className="ds-metric-trend ds-trend-up">
-                    <TrendingUp size={16} />
-                    <span>+0%</span>
-                  </div>
-                </div>
-                <div className="ds-metric-value">0%</div>
-                <div className="ds-metric-description">Of total customers</div>
-              </div>
-            </div>
-            
-            <div className="ds-main-chart">
-              <div className="ds-chart-header">
-                <h3>Revenue Trends</h3>
-                <div className="ds-chart-legend">
-                  <div className="ds-legend-item">
-                    <div className="ds-legend-dot ds-current"></div>
-                    <span>Current Period</span>
-                  </div>
-                  <div className="ds-legend-item">
-                    <div className="ds-legend-dot ds-previous"></div>
-                    <span>Previous Period</span>
-                  </div>
-                </div>
-              </div>
-              <div className="ds-chart-visualization-large">
-                <div className="ds-chart-grid">
-                  <div className="ds-grid-line"></div>
-                  <div className="ds-grid-line"></div>
-                  <div className="ds-grid-line"></div>
-                  <div className="ds-grid-line"></div>
-                </div>
-                <div className="ds-chart-line ds-current">
-                  {[30, 45, 60, 75, 65, 80, 90].map((point, i) => (
-                    <div key={i} className="ds-chart-point" style={{ left: `${i * 14.28}%`, bottom: `${point}%` }}></div>
-                  ))}
-                </div>
-                <div className="ds-chart-line ds-previous">
-                  {[25, 35, 50, 60, 55, 70, 75].map((point, i) => (
-                    <div key={i} className="ds-chart-point" style={{ left: `${i * 14.28}%`, bottom: `${point}%` }}></div>
-                  ))}
+                <div className="ds-chart-visualization-large">
+                  {isLoading ? (
+                    <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center', height: '300px'}}>
+                      <Loader size={32} className="ds-spinning" />
+                    </div>
+                  ) : analyticsChartData.labels.length === 0 ? (
+                    <div className="ds-empty-state">
+                      <TrendingUp size={48} />
+                      <p>No data available for selected range</p>
+                    </div>
+                  ) : (
+                    chartType === "customers" ? (
+                      <Bar 
+                        data={analyticsChartData} 
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false }
+                          }
+                        }}
+                        height={300}
+                      />
+                    ) : (
+                      <Line 
+                        data={analyticsChartData}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          plugins: {
+                            legend: { display: false }
+                          }
+                        }}
+                        height={300}
+                      />
+                    )
+                  )}
                 </div>
               </div>
             </div>
-          </div>
-        );
+          );
       
       case 'notifications':
         return (
@@ -2088,7 +2302,10 @@ const Dashboard = () => {
                     </div>
                     <div className="ds-notification-actions">
                       {!notification.read && (
-                        <button className="ds-mark-read-btn" onClick={() => {}}>
+                        <button
+                          className="ds-mark-read-btn"
+                          onClick={() => handleMarkNotificationRead(notification.id)}
+                        >
                           <CheckCircle size={16} />
                         </button>
                       )}
@@ -2214,7 +2431,7 @@ const Dashboard = () => {
                           <div className="ds-method-info">
                             <h4>{method.name || ''}</h4>
                             <div className="ds-method-details">
-                              <span className="ds-method-cost">${method.cost || 0}</span>
+                              <span className="ds-method-cost">{method.cost || 0}DT</span>
                               <span className="ds-method-delivery">{method.delivery || ''}</span>
                             </div>
                           </div>
@@ -2480,18 +2697,13 @@ const Dashboard = () => {
                         {item?.color || "N/A"}
                       </div>
                       <div className="ds-item-col ds-col-quantity">{item?.quantity || 0}</div>
-                      <div className="ds-item-col ds-col-price">${item?.price || "0.00"}</div>
-                      <div className="ds-item-col ds-col-total">${item?.total_price || "0.00"}</div>
+                      <div className="ds-item-col ds-col-price">{item?.price || "0.00"}DT</div>
+                      <div className="ds-item-col ds-col-total">{item?.total_price || "0.00"}DT</div>
                     </div>
                   ))}
                 </div>
                 
-                <div className="ds-order-totals">
-                  <div className="ds-total-row ds-grand-total">
-                    <span>Grand Total</span>
-                    <span>${orderDetailsData?.orders__total_price || "0.00"}</span>
-                  </div>
-                </div>
+
               </div>
             </div>
           </div>
@@ -2593,7 +2805,17 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="ds-dashboard">
+
+    <div className={`ds-dashboard ${activeActionId ? "ds-global-busy" : ""}`}>
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        newestOnTop
+        closeOnClick
+        pauseOnHover
+        draggable
+        theme="dark"
+      />
       <header className="ds-mobile-header">
         <button 
           className="ds-menu-toggle"
@@ -2759,7 +2981,7 @@ const Dashboard = () => {
           </button>
         </div>
       )}
-
+      <ConfirmationModal />
       <BackToTopButton/>
     </div>
   );

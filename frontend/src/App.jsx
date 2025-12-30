@@ -5,7 +5,6 @@ import Login from "./pages/Auth/Login.jsx";
 import SignUp from "./pages/Auth/SignUp.jsx";
 import ResetPassword from "./pages/Auth/ResetPassword.jsx";
 import Verification from "./pages/Auth/Verification.jsx";
-import Product from "./pages/Product/Product.jsx";
 import PublicRoute from "./utils/PublicRoute.jsx";
 import PrivateRoute from "./utils/PrivateRoute.jsx";
 import Header from "./components/layout/Header/Header.jsx";
@@ -53,7 +52,7 @@ function AppWrapper() {
           }
         />
 
-        <Route path="/Product/:id" element={<Product />} />
+
 
         <Route
           path="/cart"

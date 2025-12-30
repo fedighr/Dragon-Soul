@@ -61,24 +61,26 @@ class ProductSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get('description', instance.description)
         instance.save()
 
-        existing_colors = {color.color: color for color in instance.productcolor_set.all()}
-        processed_colors = set()
+        existing_colors = {color.id: color for color in instance.productcolor_set.all()}
+        processed_color_ids = set()
 
         color_index = 0
         while f'productcolor_set[{color_index}][color]' in request_data:
             color_value = request_data.get(f'productcolor_set[{color_index}][color]')
+            color_id = request_data.get(f'productcolor_set[{color_index}][id]')
             image_file = request_data.get(f'productcolor_set[{color_index}][image]')
             existing_image = request_data.get(f'productcolor_set[{color_index}][existing_image]')
             sizes_json = request_data.get(f'productcolor_set[{color_index}][productcolorsize_set]')
             
             if color_value:
-                processed_colors.add(color_value)
-                
-                if color_value in existing_colors:
-                    color_obj = existing_colors[color_value]
+                if color_id and int(color_id) in existing_colors:
+                    color_obj = existing_colors[int(color_id)]
+                    processed_color_ids.add(int(color_id))
+                    
+                    color_obj.color = color_value
                     if image_file:
                         color_obj.image = image_file
-                        color_obj.save()
+                    color_obj.save()
                 else:
                     color_data = {
                         'product_id': instance,
@@ -91,23 +93,39 @@ class ProductSerializer(serializers.ModelSerializer):
                         color_data['image'] = existing_image
                     
                     color_obj = ProductColor.objects.create(**color_data)
-                
-                color_obj.productcolorsize_set.all().delete()
+                    processed_color_ids.add(color_obj.id)
                 
                 if sizes_json:
                     sizes_data = json.loads(sizes_json) if isinstance(sizes_json, str) else sizes_json
                     
+                    existing_sizes = {size.id: size for size in color_obj.productcolorsize_set.all()}
+                    processed_size_ids = set()
+                    
                     for size_data in sizes_data:
-                        ProductColorSize.objects.create(
-                            color_id=color_obj,
-                            size=size_data.get('size'),
-                            stock=size_data.get('stock', 0)
-                        )
+                        size_id = size_data.get('id')
+                        
+                        if size_id and size_id in existing_sizes:
+                            size_obj = existing_sizes[size_id]
+                            size_obj.size = size_data.get('size', size_obj.size)
+                            size_obj.stock = size_data.get('stock', size_obj.stock)
+                            size_obj.save()
+                            processed_size_ids.add(size_id)
+                        else:
+                            new_size = ProductColorSize.objects.create(
+                                color_id=color_obj,
+                                size=size_data.get('size'),
+                                stock=size_data.get('stock', 0)
+                            )
+                            processed_size_ids.add(new_size.id)
+                    
+                    for size_id, size_obj in existing_sizes.items():
+                        if size_id not in processed_size_ids:
+                            size_obj.delete()
             
             color_index += 1
 
-        for color_name, color_obj in existing_colors.items():
-            if color_name not in processed_colors:
+        for color_id, color_obj in existing_colors.items():
+            if color_id not in processed_color_ids:
                 color_obj.delete()
 
         return instance

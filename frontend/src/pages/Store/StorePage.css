@@ -1,8 +1,4 @@
-/* StorePage.css - FIXED VERSION */
 
-/* Add these new styles first */
-
-/* Inline loaders */
 .inline-loader {
   display: inline-block;
   width: 14px;
@@ -997,7 +993,6 @@ button:disabled:hover {
   text-align: left;
 }
 
-/* Products Grid */
 .products-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -1007,7 +1002,6 @@ button:disabled:hover {
   contain: layout;
 }
 
-/* Loading Overlay */
 .loading-overlay {
   position: fixed;
   top: 0;
@@ -1021,7 +1015,6 @@ button:disabled:hover {
   z-index: 9999;
 }
 
-/* Loading More */
 .loading-more {
   text-align: center;
   padding: 30px;

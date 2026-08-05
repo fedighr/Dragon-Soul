@@ -320,37 +320,35 @@ const ProductCard = ({ product, productcolor_set, onAddtoCart }) => {
         
         <div className="product-info">
           <h3 className="product-name">{product.name}</h3>
-          <div className="price-colors-container">
-            <div className="product-price">{product.price}</div>
-            {uniqueColors.length > 0 && (
-              <div className="color-indicators">
-                {uniqueColors.slice(0, 4).map((color, index) => (
-                  <div
-                    key={index}
-                    className={`color-indicator ${currentColorIndex === index ? 'selected' : ''}`}
-                    style={{ backgroundColor: color.hex }}
-                    data-color={color.color}
-                    title={color.color}
-                    onClick={(e) => handleColorSelect(e, index)}
-                    onMouseEnter={(e) => {
-                      if (window.innerWidth >= 1024) {
-                        e.target.title = color.color;
-                      }
-                    }}
-                  />
-                ))}
-                {uniqueColors.length > 4 && (
-                  <div 
-                    className="color-indicator more-colors"
-                    title={`${uniqueColors.length - 4} more colors`}
-                    data-color={`+${uniqueColors.length - 4} more`}
-                  >
-                    +{uniqueColors.length - 4}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+          <div className="product-price">{product.price}</div>
+          {uniqueColors.length > 0 && (
+            <div className="color-indicators">
+              {uniqueColors.slice(0, 4).map((color, index) => (
+                <div
+                  key={index}
+                  className={`color-indicator ${currentColorIndex === index ? 'selected' : ''}`}
+                  style={{ backgroundColor: color.hex }}
+                  data-color={color.color}
+                  title={color.color}
+                  onClick={(e) => handleColorSelect(e, index)}
+                  onMouseEnter={(e) => {
+                    if (window.innerWidth >= 1024) {
+                      e.target.title = color.color;
+                    }
+                  }}
+                />
+              ))}
+              {uniqueColors.length > 4 && (
+                <div 
+                  className="color-indicator more-colors"
+                  title={`${uniqueColors.length - 4} more colors`}
+                  data-color={`+${uniqueColors.length - 4} more`}
+                >
+                  +{uniqueColors.length - 4}
+                </div>
+              )}
+            </div>
+          )}
         </div>
         
         {addSuccess && (
